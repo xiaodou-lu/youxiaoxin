@@ -395,8 +395,8 @@
 									$api.setStorage('umobile', ret.data.email);
 									$api.setStorage('token', token);
 									api.openWin({
-										name: 'main',
-										url: 'html/main.html',
+										name: 'video',
+										url: 'html/video.html',
 										slidBackEnabled: false,
 										reload: true
 									});
@@ -472,8 +472,8 @@
 														if (ret4.data.email.length == 11) {
 															$api.setStorage('umobile', ret4.data.email);
 															api.openWin({
-																name: 'main',
-																url: 'html/main.html',
+																name: 'video',
+																url: 'html/video.html',
 																slidBackEnabled: false
 															});
 														} else {
@@ -578,7 +578,7 @@
 												$api.setStorage('uavatar', ret3.data.avatar);
 												$api.setStorage('token', token);
 												api.openWin({
-													name: 'main',
+													name: 'video',
 													url: 'html/video.html',
 													slidBackEnabled: false
 												});
