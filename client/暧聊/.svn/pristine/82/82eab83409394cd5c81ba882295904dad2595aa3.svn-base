@@ -1,0 +1,702 @@
+<!doctype html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=no,width=device-width,initial-scale=1.0" />
+	<meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+	<title>动态</title>
+	<link rel="stylesheet" type="text/css" href="../css/api.css" />
+	<link rel="stylesheet" type="text/css" href="../css/dynamic.css" />
+</head>
+
+<body>
+	<div id="app" v-cloak>
+		<div class="wrap flex-wrap flex-vertical">
+			<div id="main" class="home-main flex-con">
+				<div class="dynamic-list" v-if="follow">
+					<div class="dynamic-item" v-for="(item,index) in dynamiclist" :key="item.id">
+						<div class="user-wrap">
+							<div class="user-avatar" @click="openUserHome(item.member_id)">
+								<img :src="item.member.avatar + '?imageView2/1/w/100/h/100'" alt="">
+							</div>
+							<div class="user-info" @click="openUserHome(item.member_id)">
+								<div class="name-wrap">
+									<div class="name">
+										<span class="name-text">{{item.member.name}}</span>
+										<span :class="['age' + item.member.sex, 'age']">
+											<i :class="['icon-sex-' + item.member.sex, 'icon']"></i>{{item.member.age}}</span>
+									</div>
+								</div>
+								<div class="occupation">{{item.city}}{{item.distance/1000}}km</div>
+							</div>
+							<div class="time" @click="openDynamicDetail(item)">{{item.created_at | timeFormat}}</div>
+						</div>
+						<div class="dynamic-con">
+							<div class="description" v-if="!!item.description" @click="openDynamicDetail(item)">{{item.description}}</div>
+							<div class="media-wrap" v-if="item.files.length != 0">
+								<div v-for="(media, i) in item.files" :key="media.id" :class="['media-item', 'media' + item.files.length]">
+									<div v-if="media.type == '1'" :class="['video', item.is_pay == '0' && item.member_id != uid ? 'blur' : '']" :style="{backgroundImage: 'url('+ media.filename + '?vframe/jpg/offset/1' +')'}" @click="openDynamicDetailVideo(item)">
+										<div class="play-icon">
+											<i class="iconfont icon-bofang"></i>
+										</div>
+									</div>
+									<div v-if="media.type == '0'" :class="['img', item.is_pay == '0' && item.member_id != uid ? 'blur' : '']" @click="openImgBrowser(item, i, index)">
+										<img :src="media.filename + '?imageView2/1/w/300/h/300'" alt="">
+									</div>
+									<i v-if="item.is_pay == '0' && item.member_id != uid" class="iconfont icon-status1"></i>
+								</div>
+							</div>
+						</div>
+						<div class="dynamic-status">
+							<div class="status-item share" @click="openActionMenu(item.id)">
+								<i class="iconfont icon-fenxiang"></i>{{item.share_size}}
+							</div>
+							<div class="status-item comments" @click="openDynamicDetail(item)">
+								<i class="iconfont icon-yanzhengma"></i>{{item.comment_size}}
+							</div>
+							<div :class="[item.is_like == 1 ? 'is_like' : '','status-item']" @click="like(item.id, index)">
+								<i class="iconfont icon-xin"></i>{{item.like_size}}
+							</div>
+							<div v-if="item.member_id == uid" class="status-item" @click="dynamicDel(item.id, index)">
+								<i class="iconfont icon-delete"></i>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div v-if="empty" class="empty-wrap">
+					<img class="empty-img" src="../image/empty.png">
+					<div class="empty-text">暂无数据~</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/vue.js"></script>
+<script type="text/javascript" src="../script/common.js"></script>
+<script type="text/javascript">
+	var app, dialogBox, UIPhotoViewer;
+	apiready = function () {
+		api.setStatusBarStyle({
+      style: 'light',
+    });
+		dialogBox = api.require('dialogBox');
+		UIPhotoViewer = api.require('UIPhotoViewer');
+		app = new Vue({
+			el: '#app',
+			data: {
+				userInfo: {},
+				uid: $api.getStorage('uid'),
+				empty: false,
+				follow: false,
+				dynamicType: 'local',
+				paginate: 10,
+				page: 1,
+				dynamiclist: [],
+				shareTitle: '',
+				shareContent: '',
+				shareUrl: '',
+				shareImage: '',
+				shareImageQQ: '',
+			},
+			created: function () {
+				var _this = this;
+				_this.getUserIndex();
+				api.addEventListener({
+					name: 'getDynamicList'
+				}, function (ret, err) {
+					_this.page = 1;
+					_this.getDynamicList(_this.dynamicType);
+				})
+				api.setRefreshHeaderInfo({
+					bgColor: '#ccc',
+					textColor: '#fff',
+					textDown: '下拉刷新...',
+					textUp: '松开刷新...'
+				}, function (ret, err) {
+					_this.page = 1;
+					setTimeout(function () {
+						_this.getDynamicList(_this.dynamicType);
+					}, 500);
+				});
+				api.addEventListener({
+					name: 'scrolltobottom',
+					extra: {
+						threshold: 0
+					}
+				}, function (ret, err) {
+					_this.getDynamicList(_this.dynamicType);
+				});
+				api.addEventListener({
+					name: 'closeImgBrowser'
+				}, function(ret, err){
+					UIPhotoViewer.close();
+				});
+			},
+			mounted: function () {
+				var _this = this;
+				_this.getDynamicList(_this.dynamicType);
+			},
+			methods: {
+				getUserIndex: function () {
+          var _this = this;
+          api.ajax({
+            url: baseUrl + 'user/index',
+            method: 'get',
+            headers: {
+              token: $api.getStorage('deviceToken')
+            },
+            data: {
+              values: {
+                uid: $api.getStorage('uid'),
+              },
+            }
+          }, function (ret, err) {
+            api.refreshHeaderLoadDone();
+            api.hideProgress();
+            if (ret.status == 200) {
+              _this.userInfo = ret.data;
+            }
+          })
+				},
+				
+				getDynamicList: function (type) {
+					var _this = this;
+					api.showProgress({
+						title: '',
+						text: '加载中……'
+					});
+					api.ajax({
+						url: baseUrl + 'dynamic/list',
+						method: 'get',
+						headers: {
+							token: $api.getStorage('deviceToken')
+						},
+						data: {
+							values: {
+								uid: $api.getStorage('uid'),
+								paginate: _this.paginate,
+								page: _this.page,
+								type: type
+							}
+						}
+					}, function (ret, err) {
+						api.refreshHeaderLoadDone();
+						api.hideProgress();
+						if (ret.status == 200) {
+							if (_this.page == 1) {
+								_this.page++;
+								if (ret.data == '') {
+									_this.empty = true;
+									_this.follow = false;
+								} else {
+									_this.empty = false;
+									_this.follow = true;
+									_this.dynamiclist = ret.data;
+								}
+							} else if (_this.page <= ret.pagination.last_page) {
+								_this.page++;
+								for (var i = 0; i < ret.data.length; i++) {
+									_this.dynamiclist.push(ret.data[i])
+								}
+							} else {
+								api.toast({
+									msg: '没有更多了'
+								})
+							}
+						}
+					})
+				},
+
+				like: function (id, index) {
+					var _this = this;
+					api.ajax({
+						url: baseUrl + 'dynamic/like',
+						method: 'get',
+						headers: {
+							token: $api.getStorage('deviceToken')
+						},
+						data: {
+							values: {
+								uid: $api.getStorage('uid'),
+								id: id
+							}
+						}
+					}, function (ret, err) {
+						if (ret.status == 200) {
+							api.toast({
+								msg: ret.message[0]
+							})
+							if (ret.code == 200) {
+								_this.dynamiclist[index].is_like = 1;
+								_this.dynamiclist[index].like_size = parseInt(_this.dynamiclist[index].like_size) + 1;
+							}
+							if (ret.code == 201) {
+								_this.dynamiclist[index].is_like = 0;
+								_this.dynamiclist[index].like_size = parseInt(_this.dynamiclist[index].like_size) - 1;
+							}
+						}
+					})
+				},
+
+				dynamicDel: function (id, index) {
+					var _this = this;
+					api.confirm({
+						title: '提示',
+						msg: '确认要删除吗？',
+						buttons: ['确定', '取消']
+					}, function (ret, err) {
+						if (ret.buttonIndex == 1) {
+							api.showProgress({
+								title: '',
+								text: ''
+							});
+							api.ajax({
+								url: baseUrl + 'dynamic/del',
+								method: 'get',
+								headers: {
+									token: $api.getStorage('deviceToken')
+								},
+								data: {
+									values: {
+										uid: $api.getStorage('uid'),
+										id: id
+									}
+								}
+							}, function (ret, err) {
+								api.hideProgress();
+								if (ret.status == 200) {
+									api.toast({
+										msg: ret.message[0]
+									})
+									if (ret.code == 200) {
+										_this.dynamiclist.splice(index, 1);
+									}
+								}
+							})
+						}
+					});
+				},
+
+				openDynamicDetail: function (item) {
+					var _this = this;
+					if (item.gold != '0' && item.is_pay == 0 && item.member_id != _this.uid) {
+						api.confirm({
+							title: '提示',
+							msg: '查看此动态需要' + item.gold + '港币',
+							buttons: ['确定', '取消']
+						}, function (ret, err) {
+							if (ret.buttonIndex == 1) {
+								api.openWin({
+									name: 'dynamic_detail',
+									url: 'dynamic_detail.html',
+									slidBackEnabled: false,
+									pageParam: {
+										id: item.id
+									}
+								});
+							}
+						});
+					} else {
+						api.openWin({
+							name: 'dynamic_detail',
+							url: 'dynamic_detail.html',
+							slidBackEnabled: false,
+							pageParam: {
+								id: item.id
+							}
+						});
+					}
+				},
+
+				openDynamicDetailVideo: function (item) {
+					var _this = this;
+					if (item.gold != '0' && item.is_pay == 0 && item.member_id != _this.uid) {
+						api.confirm({
+							title: '提示',
+							msg: '查看此动态需要' + item.gold + '港币',
+							buttons: ['确定', '取消']
+						}, function (ret, err) {
+							if (ret.buttonIndex == 1) {
+								api.openWin({
+									name: 'dynamic_detail_video',
+									url: 'dynamic_detail_video.html',
+									slidBackEnabled: false,
+									pageParam: {
+										id: item.id
+									}
+								});
+							}
+						});
+					} else {
+						api.openWin({
+							name: 'dynamic_detail_video',
+							url: 'dynamic_detail_video.html',
+							slidBackEnabled: false,
+							pageParam: {
+								id: item.id
+							}
+						});
+					}
+				},
+
+				openImgBrowser: function (item, index, item_index) {
+					var _this = this;
+					api.sendEvent({
+						name: 'openImgBrowser',
+						extra: {
+							imgBrowser: true
+						}
+					});
+					var tempImages = [];
+					for (var i = 0; i < item.files.length; i++) {
+						tempImages.push(item.files[i].filename)
+					}
+					if (item.is_pay == '1') {
+						UIPhotoViewer.open({
+							images: tempImages,
+							activeIndex: index,
+							bgColor: '#000',
+							zoomEnabled: true
+						}, function (ret, err) {
+							if (ret) {
+								if (ret.eventType == 'click') {
+									UIPhotoViewer.close();
+								}
+							}
+						});
+					} else {
+						if (item.member_id == _this.uid) {
+							UIPhotoViewer.open({
+								images: tempImages,
+								activeIndex: index,
+								bgColor: '#000',
+								zoomEnabled: true
+							}, function (ret, err) {
+								if (ret) {
+									if (ret.eventType == 'click') {
+										UIPhotoViewer.close();
+									}
+								}
+							});
+						} else {
+							api.confirm({
+								title: '提示',
+								msg: '查看此动态需要' + item.gold + '港币',
+								buttons: ['确定', '取消']
+							}, function (ret, err) {
+								if (ret.buttonIndex == 1) {
+									api.ajax({
+										url: baseUrl + 'dynamic/detail',
+										method: 'get',
+										headers: {
+											token: $api.getStorage('deviceToken')
+										},
+										data: {
+											values: {
+												uid: $api.getStorage('uid'),
+												id: item.id
+											}
+										}
+									}, function (ret, err) {
+										if (ret.status == 200) {
+											UIPhotoViewer.open({
+												images: tempImages,
+												activeIndex: index,
+												bgColor: '#000',
+												zoomEnabled: true
+											}, function (ret, err) {
+												if (ret) {
+													if (ret.eventType == 'click') {
+														UIPhotoViewer.close();
+													}
+												}
+											});
+											_this.dynamiclist[item_index].is_pay = '1';
+										} else {
+											api.toast({
+												msg: ret.message[0],
+												duration: 2000,
+												location: 'bottom'
+											});
+										}
+									})
+								}
+							});
+						}
+					}
+				},
+				openUserHome: function (id) {
+					api.openWin({
+						name: 'user_home',
+						url: 'user_home.html',
+						slidBackEnabled: false,
+						pageParam: {
+							member_id: id
+						}
+					});
+				},
+
+				planShare: function (id) {
+					var _this = this;
+					api.ajax({
+						url: baseUrl + 'share/index',
+						method: 'get',
+						headers: {
+							token: $api.getStorage('deviceToken')
+						},
+						data: {
+							values: {
+								uid: $api.getStorage('uid'),
+								id: id,
+								type: 'dynamic'
+							},
+						}
+					}, function (ret, err) {
+						if (ret.status == 200) {
+							_this.shareTitle = ret.data.title;
+							_this.shareContent = ret.data.content;
+							_this.shareUrl = ret.data.url + '?channel=' + $api.getStorage('channel') + '&tuid=' + $api.getStorage('uid');
+							_this.shareImage = ret.data.image;
+							_this.shareImageQQ = ret.data.image;
+						}
+					})
+				},
+
+				openActionMenu: function (id) {
+					var _this = this;
+					_this.planShare(id);
+					dialogBox.actionMenu({
+						rect: {
+							h: 140
+						},
+						items: [{
+							text: '微信好友',
+							icon: 'widget://image/circular-WeChat.png'
+						}, {
+							text: '微信朋友圈',
+							icon: 'widget://image/circle-friend.png'
+						}],
+						styles: {
+							bg: '#FFF',
+							column: 2,
+							itemText: {
+								color: '#000',
+								size: 14,
+								marginT: 10
+							},
+							itemIcon: {
+								size: 60
+							}
+						},
+						tapClose: true
+					}, function (ret) {
+						var wx = api.require('wxPlus');
+						var qq = api.require('QQPlus');
+						if (ret.index == 0) {
+							wx.shareWebpage({
+								scene: 'session',
+								title: _this.shareTitle,
+								description: _this.shareContent,
+								thumb: _this.shareImage,
+								contentUrl: _this.shareUrl
+							}, function (ret, err) {
+								_this.closdialg();
+								if (ret.status) {
+									api.toast({
+										msg: '分享成功'
+									});
+								} else {
+									api.toast({
+										msg: '分享失败'
+									});
+								}
+							});
+						}
+						if (ret.index == 1) {
+							wx.shareWebpage({
+								scene: 'timeline',
+								title: _this.shareTitle,
+								description: _this.shareContent,
+								thumb: _this.shareImage,
+								contentUrl: _this.shareUrl
+							}, function (ret, err) {
+								_this.closdialg();
+								if (ret.status) {
+									api.toast({
+										msg: '分享成功'
+									});
+								} else {
+									api.toast({
+										msg: '分享失败'
+									});
+								}
+							});
+						}
+						if (ret.index == 2) {
+							qq.shareNews({
+								type: 'QFriend',
+								url: _this.shareUrl,
+								title: _this.shareTitle,
+								description: _this.shareContent,
+								imgUrl: _this.shareImageQQ
+							}, function (ret, err) {
+								_this.closdialg();
+								if (ret.status) {
+									api.toast({
+										msg: '分享成功'
+									});
+								} else {
+									api.toast({
+										msg: '分享失败'
+									});
+								}
+							});
+						}
+						if (ret.index == 3) {
+							qq.shareNews({
+								type: 'QZone',
+								url: _this.shareUrl,
+								title: _this.shareTitle,
+								description: _this.shareContent,
+								imgUrl: _this.shareImageQQ
+							}, function (ret, err) {
+								_this.closdialg();
+								if (ret.status) {
+									api.toast({
+										msg: '分享成功'
+									});
+								} else {
+									api.toast({
+										msg: '分享失败'
+									});
+								}
+							});
+						}
+					});
+				},
+
+				closdialg: function () {
+					dialogBox.close({
+						dialogName: 'actionMenu'
+					});
+				},
+				
+				showRechargeDialog: function (title) {
+          dialogBox.evaluation({
+            styles: {
+              bg: '#fff',
+              corner: 2,
+              w: 300,
+              title: {
+                marginT: 20,
+                size: 14,
+                h: 50,
+                color: '#000',
+                bold: true,
+                borderColor: '#eee',
+                borderWidth: 1
+              },
+              buttons: [{
+                w: 300,
+                h: 50,
+                color: '#0077ff',
+                size: 14,
+                borderColor: '#eee',
+                borderWidth: 1
+              }, {
+                w: 300,
+                h: 50,
+                color: '#0077ff',
+                size: 14,
+                borderColor: '#eee',
+                borderWidth: 1
+              }, {
+                w: 300,
+                h: 50,
+                color: '#000',
+                size: 14
+              }]
+            },
+            texts: {
+              title: title,
+              buttons: [{
+                text: '去赚钱'
+              }, {
+                text: '去充值'
+              }, {
+                text: '取消'
+              }]
+            },
+            tapClose: true
+          }, function (ret, err) {
+            if (ret) {
+              if (ret.index == 0) {
+                dialogBox.close({
+                  dialogName: 'evaluation'
+                });
+                api.openWin({
+                  name: 'my_share',
+                  url: 'my_share.html',
+                  slidBackEnabled: false
+                });
+              }
+              if (ret.index == 1) {
+                dialogBox.close({
+                  dialogName: 'evaluation'
+                });
+                api.openWin({
+                  name: 'recharge',
+                  url: 'recharge.html',
+                  slidBackEnabled: false
+                });
+              }
+              if (ret.index == 2) {
+                dialogBox.close({
+                  dialogName: 'evaluation'
+                });
+              }
+            }
+          });
+        },
+			},
+			filters: {
+				timeFormat: function (value) {
+					var now = new Date().getTime(),
+						oldTime = new Date(value).getTime(),
+						difference = now - oldTime,
+						result = '',
+						minute = 1000 * 60,
+						hour = minute * 60,
+						day = hour * 24,
+						halfamonth = day * 15,
+						month = day * 30,
+						year = month * 12,
+						_year = difference / year,
+						_month = difference / month,
+						_week = difference / (7 * day),
+						_day = difference / day,
+						_hour = difference / hour,
+						_min = difference / minute;
+					if (_year >= 1) {
+						result = ~~(_year) + " 年前"
+					} else if (_month >= 1) {
+						result = ~~(_month) + " 个月前"
+					} else if (_week >= 1) {
+						result = ~~(_week) + " 周前"
+					} else if (_day >= 1) {
+						result = ~~(_day) + " 天前"
+					} else if (_hour >= 1) {
+						result = ~~(_hour) + " 小时前"
+					} else if (_min >= 1) {
+						result = ~~(_min) + " 分钟前"
+					} else result = "刚刚";
+					return result;
+				},
+			}
+		})
+	}
+</script>

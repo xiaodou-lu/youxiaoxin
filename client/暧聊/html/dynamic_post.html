@@ -1,0 +1,291 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=no,width=device-width,initial-scale=1.0" />
+  <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+  <title>动态发布</title>
+  <link rel="stylesheet" type="text/css" href="../css/api.css" />
+  <link rel="stylesheet" type="text/css" href="../css/dynamic_post.css" />
+</head>
+
+<body>
+  <div id="app" v-cloak>
+    <div class="wrap flex-wrap flex-vertical">
+      <header id="header">
+        <div class="header-wrap">
+          <div class="header-left" @click="goback">
+            <i class="iconfont icon-pre"></i>
+          </div>
+          <div class="header-title">发布动态</div>
+          <div class="header-right" @click="post">
+            <button class="post-btn">发布</button>
+          </div>
+        </div>
+      </header>
+      <div class="flex-con">
+        <div class="upload">
+          <div class="upload-info">
+            <textarea v-model="desc" placeholder="这一刻的想法"></textarea>
+          </div>
+          <div class="price-wrap">
+            <div class="th">设置价格：</div>
+            <div class="td">
+              <input type="tel" v-model="gold" placeholder="0">
+            </div>
+            <span>（0表示免费）</span>
+          </div>
+          <div class="upload-addBox">
+            <div v-if="img_list.length != 0" class="img-list">
+              <div class="img-item" v-for="(item, index) in img_list" :key="index">
+                <span class="delete" @click="deleteMedia('img', index)">
+                  <i class="iconfont icon-close"></i>
+                </span>
+                <img :src="item + '?imageView2/1/w/200/h/200'" alt="">
+              </div>
+            </div>
+            <div v-if="videoUrl != ''" class="video-wrap">
+              <div class="video-item" :style="{backgroundImage: 'url('+ videoUrl + '?vframe/jpg/offset/1' +')'}">
+                <span class="delete" @click="deleteMedia('video')">
+                  <i class="iconfont icon-close"></i>
+                </span>
+                <div class="play-icon">
+                  <i class="iconfont icon-bofang"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="btn-wrap">
+        <div @click="uploadImgActionSheet" class="btn-item">
+          <i class="iconfont icon-img"></i>
+          <div>发布图片</div>
+        </div>
+        <div @click="uploadVedioActionSheet" class="btn-item">
+          <i class="iconfont icon-bofang"></i>
+          <div>发布视频</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/vue.js"></script>
+<script type="text/javascript" src="../script/common.js"></script>
+<script type="text/javascript">
+  var app;
+  apiready = function () {
+    $api.fixStatusBar($api.dom('#header'));
+    app = new Vue({
+      el: '#app',
+      data: {
+        qiniuToken: '',
+        isUploadImg: false,
+        isUploadVideo: false,
+        img_list: [],
+        videoUrl: '',
+        type: '',
+        files: [],
+        desc: '',
+        gold: '0',
+      },
+      created: function () {
+        var _this = this;
+        _this.getQiniuToken();
+      },
+      mounted: function () {},
+      methods: {
+        // 获取七牛token
+        getQiniuToken: function () {
+          var _this = this;
+          api.ajax({
+            url: baseUrl + 'qiniu/token',
+            method: 'get',
+            headers: {
+              token: $api.getStorage('deviceToken')
+            },
+            data: {
+              values: {
+                uid: $api.getStorage('uid')
+              }
+            }
+          }, function (ret, err) {
+            if (ret.status == 200) {
+              _this.qiniuToken = ret.data[0];
+            }
+          })
+        },
+
+        uploadImgActionSheet: function () {
+          var _this = this;
+          if (_this.isUploadVideo) {
+            api.toast({
+              msg: '您已经上传了视频，不能再上传图片了',
+            });
+            return false;
+          }
+          api.actionSheet({
+            title: '',
+            cancelTitle: '取消',
+            destructiveTitle: '',
+            buttons: ['拍照', '相册']
+          }, function (ret, err) {
+            if (ret) {
+              if (ret.buttonIndex == 1) {
+                _this.getImageFile('camera');
+              }
+              if (ret.buttonIndex == 2) {
+                _this.getImageFile('album');
+              }
+            }
+          });
+        },
+
+        getImageFile: function (type) {
+          var _this = this;
+          api.getPicture({
+            sourceType: type,
+            encodingType: 'png',
+            mediaValue: 'pic',
+            destinationType: 'url',
+          }, function (ret, err) {
+            if (ret && !!ret.data) {
+              _this.uploadFile(ret.data, 'img');
+            }
+          });
+        },
+
+        // 上传图片&视频
+        uploadFile: function (fileUrl, type) {
+          var _this = this;
+          api.showProgress({
+            title: '',
+            text: ''
+          });
+          api.ajax({
+            url: qiniuBaseUrl,
+            method: 'post',
+            data: {
+              values: {
+                token: this.qiniuToken
+              },
+              files: {
+                file: fileUrl
+              }
+            }
+          }, function (ret, err) {
+            api.hideProgress();
+            if (ret) {
+              if (type == 'img') {
+                _this.files.push(ret.key);
+                _this.img_list.push(qiniuImageUrl + ret.key);
+                _this.isUploadImg = true;
+              }
+              if (type == 'video') {
+                _this.files = [];
+                _this.files[0] = ret.key;
+                _this.videoUrl = qiniuImageUrl + ret.key;
+                _this.isUploadVideo = true;
+              }
+            }
+            if (err) {
+              api.toast({
+                msg: '网络错误，请稍后再试',
+                duration: 2000,
+                location: 'bottom'
+              });
+            }
+          });
+        },
+
+        uploadVedioActionSheet: function () {
+          var _this = this;
+          if (_this.isUploadImg) {
+            api.toast({
+              msg: '您已经上传了图片，不能再上传视频了',
+            });
+            return false;
+          }
+          api.getPicture({
+            sourceType: 'album',
+            mediaValue: 'video',
+            destinationType: 'url',
+          }, function (ret, err) {
+            if (ret && !!ret.data) {
+              _this.uploadFile(ret.data, 'video');
+            }
+          });
+        },
+
+        deleteMedia: function (type, index) {
+          var _this = this;
+          if (type == 'img') {
+            _this.img_list.splice(index, 1);
+            _this.files.splice(index, 1);
+            _this.isUploadImg = _this.img_list.length == 0 ? false : true;
+          }
+          if (type == 'video') {
+            _this.videoUrl = '';
+            _this.files = '';
+            _this.isUploadVideo = false;
+          }
+        },
+
+        post: function () {
+          var _this = this;
+          if (_this.isUploadImg) {
+            _this.type = 'img';
+          }
+          if (_this.isUploadVideo) {
+            _this.type = 'video';
+          }
+          if (_this.type == '') {
+            api.toast({
+              msg: '请选择至少一张图片或一个视频',
+            });
+            return false;
+          }
+          api.ajax({
+            url: baseUrl + 'dynamic/add',
+            method: 'post',
+            headers: {
+              token: $api.getStorage('deviceToken')
+            },
+            data: {
+              values: {
+                uid: $api.getStorage('uid'),
+                desc: _this.desc,
+                files: _this.files.join(','),
+                type: _this.type,
+                gold: _this.gold,
+              }
+            }
+          }, function (ret, err) {
+            api.toast({
+              msg: ret.message[0],
+            });
+            if (ret.status == 200) {
+              api.sendEvent({
+                name: 'getDynamicList',
+                extra: {
+                  type: '',
+                }
+              });
+              setTimeout(function () {
+                api.closeWin();
+              }, 1000);
+            }
+          })
+        },
+        goback: function () {
+          api.closeWin();
+        }
+      },
+      filters: {}
+    })
+  }
+</script>

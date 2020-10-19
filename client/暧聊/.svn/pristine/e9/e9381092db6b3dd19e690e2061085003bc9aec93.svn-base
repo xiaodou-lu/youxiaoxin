@@ -1,0 +1,82 @@
+<widget id="A6047177311336"  version="0.0.1">
+ <name>ailiao</name>
+ <description>
+   ailiao
+ </description>
+ <author email="developer@apicloud.com" href="http://www.apicloud.com">
+   Developer
+ </author>
+ <content src="index.html" />
+ <access origin="*" />
+ <preference name="pageBounce" value="false"/>
+ <preference name="appBackground" value="rgba(0,0,0,0.0)"/>
+ <preference name="windowBackground" value="rgba(0,0,0,0.0)"/>
+ <preference name="frameBackgroundColor" value="rgba(0,0,0,0.0)"/>
+ <preference name="hScrollBarEnabled" value="false"/>
+ <preference name="vScrollBarEnabled" value="false"/>
+ <preference name="autoLaunch" value="true"/>
+ <preference name="fullScreen" value="false"/>
+ <preference name="autoUpdate" value="false" />
+ <preference name="smartUpdate" value="false" />
+ <preference name="debug" value="true"/>
+ <preference name="statusBarAppearance" value="true"/>
+ <preference name="appCertificateVerify" value="false" />
+ <permission name="readPhoneState" />
+ <permission name="camera" />
+ <permission name="record" />
+ <permission name="location" />
+ <permission name="fileSystem" />
+ <permission name="internet" />
+ <permission name="bootCompleted" />
+ <permission name="hardware" />
+ <preference name="backgroundMode" value="audio | voip"/>
+ <preference name="querySchemes" value="weixin, wechat" />
+ <preference name="softInputMode" value="auto"/>
+ <preference name="urlScheme" value="dqdf8018" />
+
+<feature name="shareInstall">
+    <param name="com.shareinstall.APP_KEY" value="77BK6ARERHBRE7" />
+</feature>
+ <intent-filter>
+   <action name="android.intent.action.VIEW"/>
+   <category name="android.intent.category.DEFAULT"/>
+   <data scheme="rong" host="com.n1015848021.jwp" pathPrefix="/conversation/"/>
+ </intent-filter>
+ <intent-filter>
+   <action name="android.intent.action.VIEW" />
+   <category name="android.intent.category.DEFAULT" />
+   <data host="com.n1015848021.jwp" path="/conversationlist" scheme="rong" />
+ </intent-filter>
+ <intent-filter>
+   <action name="android.intent.action.VIEW" />
+   <category name="android.intent.category.DEFAULT" />
+   <data host="com.n1015848021.jwp" pathPrefix="/push_message" scheme="rong" />
+ </intent-filter>
+ <feature name="rongCloud2">
+   <param name="appKey" value="0vnjpoad0iyez" />
+ </feature>
+ <feature name="mapleRTC">
+   <param name="appId" value="baef924344132e90" />
+ </feature>
+ <feature name="gotyeLiveCore">
+   <param name="appKey" value="10e56980ff4a4a198b2a7f0bcd092f35" />
+   <param name="accessSecret" value="2c38ccec15094689ae186e7652e88d67" />
+ </feature>
+ <feature name="QQPlus">
+   <param name="urlScheme" value="tencent1107018828" />
+   <param name="apiKey" value="1107018828" />
+ </feature>
+ <feature name="wx">
+   <param name="urlScheme" value="wxc85abafc511cc956"/>
+   <param name="apiKey" value="wxc85abafc511cc956"/>
+   <param name="apiSecret" value="8710385655fda9ccb161597dec97329a"/>
+ </feature>
+ <feature name="wxPay">
+  <param name="urlScheme" value="wxc85abafc511cc956"/>
+  <param name="apiKey" value="wxc85abafc511cc956"/>
+  <param name="apiSecret" value="8710385655fda9ccb161597dec97329a"/>
+</feature>
+ <feature name="aliPayPlus">
+   <param name="urlScheme" value="2021001172612192" />
+   </feature>
+</widget>

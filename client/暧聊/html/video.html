@@ -1,0 +1,207 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>短视频</title>
+    <link rel="stylesheet" type="text/css" href="../css/api.css" />
+    <link rel="stylesheet" type="text/css" href="../css/video.css" />
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <div class="wrap video-list flex-wrap flex-vertical">
+            <div v-if="videoList.length > 0" class="list-wrap">
+                <div class="list-item" v-for="(item, index) in videoList" :key="item.id" @click="openVideoDetail(item, index)">
+                    <div :class="['cover-img', info.level == '0' && item.status == '1' && item.member.member_id != uid ? 'blur' : '']" :style="{backgroundImage: 'url('+ item.file + '?vframe/jpg/offset/1' +')'}"></div>
+                    <div v-if="info.level == '0' && item.status == '1' && item.member.member_id != uid" class="private">
+                        <i class="iconfont icon-status1"></i>
+                    </div>
+                    <div class="user-info">
+                        <div class="user">
+                            <img class="avatar" :src="item.member.avatar" alt="">
+                            <span>{{item.member.name}}</span>
+                        </div>
+                        <div class="like-size">
+                            <span>{{item.member.province}}</span><span>{{item.member.city}}</span>
+                            <i class="iconfont icon-xin"></i>{{item.like_size}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div v-else class="empty-wrap">
+                <img class="empty-img" src="../image/empty.png">
+                <div class="empty-text">暂无短视频</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/vue.js"></script>
+<script type="text/javascript" src="../script/common.js"></script>
+<script type="text/javascript">
+    var app, dialogBox;
+    apiready = function() {
+        dialogBox = api.require('dialogBox');
+        app = new Vue({
+            el: '#app',
+            data: {
+                uid: $api.getStorage('uid'),
+                videoList: [],
+                info: {},
+                page: 1
+            },
+            created: function() {
+                var _this = this;
+                api.setRefreshHeaderInfo({
+                    bgColor: '#ccc',
+                    textColor: '#fff',
+                    textDown: '下拉刷新...',
+                    textUp: '松开刷新...'
+                }, function(ret, err) {
+                    _this.page = 1;
+                    setTimeout(function() {
+                        _this.getVideoIndex();
+                    }, 1000);
+                });
+                api.addEventListener({
+                    name: 'scrolltobottom',
+                    extra: {
+                        threshold: 0
+                    }
+                }, function(ret, err) {
+                    setTimeout(function() {
+                        _this.getVideoIndex();
+                    }, 500);
+                });
+                api.addEventListener({
+                    name: 'video_refresh'
+                }, function(ret, err) {
+                    _this.getVideoIndex();
+                });
+            },
+            mounted: function() {
+                var _this = this;
+                _this.getVideoIndex();
+            },
+            methods: {
+                getVideoIndex: function() {
+                    var _this = this;
+                    // api.showProgress({
+                    //   title: '',
+                    //   text: ''
+                    // });
+                    api.ajax({
+                        url: baseUrl + 'video/index',
+                        method: 'get',
+                        headers: {
+                            token: $api.getStorage('deviceToken')
+                        },
+                        data: {
+                            values: {
+                                type: 'new',
+                                uid: $api.getStorage('uid'),
+                                page: _this.page
+                            },
+                        }
+                    }, function(ret, err) {
+                        api.refreshHeaderLoadDone();
+                        // api.hideProgress();
+                        if (ret.status == 200) {
+                            if (_this.page == 1) {
+                                _this.page++;
+                                _this.info = ret.info;
+                                _this.videoList = ret.data;
+                            } else if (_this.page <= ret.pagination.last_page) {
+                                _this.page++;
+                                for (var i = 0; i < ret.data.length; i++) {
+                                    _this.videoList.push(ret.data[i])
+                                }
+                            } else {
+                                api.toast({
+                                    msg: '没有更多了'
+                                })
+                            }
+                        }
+                    })
+                },
+
+                // 跳转视频详情页
+                openVideoDetail: function(item, index) {
+                    var _this = this;
+                    if (_this.info.level == '0' && item.status == '1' && item.member.member_id != _this.uid) {
+                        _this.openDialogBox('开通VIP即可观看视频');
+                    } else {
+                        api.openWin({
+                            name: 'video_detail',
+                            url: 'video_detail.html',
+                            slidBackEnabled: false,
+                            pageParam: {
+                                videoList: _this.videoList,
+                                index: index
+                            }
+                        });
+                    }
+                },
+
+                // 提示充值vip弹窗
+                openDialogBox: function(txt) {
+                    dialogBox.raffle({
+                        texts: {
+                            mainText: txt,
+                            subText: '',
+                            leftTitle: '开通会员'
+                        },
+                        styles: {
+                            bg: '#272320',
+                            w: 300,
+                            corner: 2,
+                            icon: {
+                                marginT: 20,
+                                w: 40,
+                                h: 40,
+                                corner: 20,
+                                iconPath: 'widget://image/icon_big_vip.png'
+                            },
+                            main: {
+                                marginT: 10,
+                                color: '#fff',
+                                size: 14,
+                            },
+                            sub: {
+                                marginT: 10
+                            },
+                            left: {
+                                w: 300,
+                                h: 50,
+                                marginL: 0,
+                                marginB: 0,
+                                corner: 2,
+                                bg: '#000',
+                                color: '#fff',
+                                size: 16
+                            }
+                        },
+                        tapClose: true
+                    }, function(ret, err) {
+                        if (ret.eventType == 'left') {
+                            dialogBox.close({
+                                dialogName: 'raffle'
+                            });
+                            api.openWin({
+                                name: 'my_vip',
+                                url: 'my_vip.html',
+                                slidBackEnabled: false
+                            });
+                        }
+                    });
+                },
+
+            }
+        })
+    }
+</script>

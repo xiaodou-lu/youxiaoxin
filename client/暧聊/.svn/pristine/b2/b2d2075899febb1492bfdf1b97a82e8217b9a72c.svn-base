@@ -1,0 +1,434 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+  <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+  <title>消息</title>
+  <link rel="stylesheet" type="text/css" href="../css/api.css" />
+  <link rel="stylesheet" type="text/css" href="../css/message.css" />
+  <link rel="stylesheet" href="../css/swiper.min.css">
+</head>
+
+<body>
+  <div id="app" v-cloak>
+    <div class="wrap flex-wrap flex-vertical" @click='closeHide'>
+      <div class="main flex-con">
+        <div class="sys-message-list">
+          <div @click="openCallRecord" class="sys-message-item border-bottom">
+            <i class="icon icon-record"></i>
+            <div class="tiele">通话记录</div>
+            <i class="iconfont icon-next"></i>
+          </div>
+        </div>
+        <div class="sys-message-list">
+          <div @click="openMyFollow" class="sys-message-item border-bottom">
+            <i class="icon icon-follow"></i>
+            <div class="tiele">我的关注</div>
+            <i class="iconfont icon-next"></i>
+          </div>
+        </div>
+        <div class="sys-message-list">
+            <div @click="openCommunity" class="sys-message-item border-bottom">
+              <i class="icon icon-community"></i>
+              <div class="tiele">社区动态</div>
+              <i class="iconfont icon-next"></i>
+            </div>
+          </div>
+        <div id="message-list" class="message-list">
+          <div v-if="adminMessage.objectName != ''" class="message-item border-bottom" @click="openAdminMessage">
+            <div class="avatar">
+              <img :src="adminMessage.latestMessage.extra.fromAvatar + '?imageView2/1/w/100/h/100'" alt="">
+              <span v-if="adminMessage.unreadMessageCount > 0" class="unreadMessageCount">{{adminMessage.unreadMessageCount}}</span>
+            </div>
+            <div class="message-info">
+              <div class="name">{{adminMessage.latestMessage.extra.fromName}}
+                <span class="time">{{adminMessage.sentTime | timeFormat}}</span>
+              </div>
+              <div class="info">
+                <span v-if="adminMessage.objectName == 'RC:TxtMsg'">{{adminMessage.latestMessage.text}}</span>
+                <span v-if="adminMessage.objectName == 'RC:ImgMsg'">[图片]</span>
+                <span v-if="adminMessage.objectName == 'RC:VcMsg'">[语音]</span>
+                <span v-if="adminMessage.objectName == 'RC:ImgTextMsg'">
+                  [图文] {{item.latestMessage.description}}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="message-item" v-show='showId' @click="openIM('waiter')" v-if="waiterMessage.sentTime!= ''">
+            <div class="avatar">
+              <img :src="waiter.fromAvatar + '?imageView2/1/w/100/h/100'" alt="">
+              <span v-if="waiterMessage.unreadMessageCount > 0" class="unreadMessageCount">{{waiterMessage.unreadMessageCount}}</span>
+            </div>
+            <div class="message-info">
+              <div class="name">{{waiter.fromName}}
+                <span class="time">{{waiterMessage.sentTime | timeFormat}}</span>
+              </div>
+              <div class="info">
+                <span v-if="waiterMessage.objectName == 'RC:TxtMsg'">{{waiterMessage.latestMessage.text}}</span>
+                <span v-if="waiterMessage.objectName == 'RC:ImgMsg'">[图片]</span>
+                <span v-if="waiterMessage.objectName == 'RC:VcMsg'">[语音]</span>
+                <span v-if="waiterMessage.objectName == 'RC:ImgTextMsg'">
+                  <em v-if="waiterMessage.latestMessage.title == 'give_gift_message'">[礼物]</em>
+                  <em v-if="waiterMessage.latestMessage.title == 'call_message'">{{item.latestMessage.description}}</em>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="pop" v-show='pop'></div>
+          <div v-for="(item, i) in conversationList" @click.stop="openIM(item)">
+            <div class="swiper-container">
+              <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                  <div class="message-item border-bottom">
+                    <div class="avatar">
+                      <img :src="item.getAvatar + '?imageView2/1/w/100/h/100'" alt="">
+                      <span v-if="item.unreadMessageCount > 0" class="unreadMessageCount">{{item.unreadMessageCount}}</span>
+                    </div>
+                    <div class="message-info">
+                      <div class="name">{{item.getName }}
+                        <span class="time">{{item.sentTime | timeFormat}}</span>
+                      </div>
+                      <div class="info">
+                        <span v-if="item.objectName == 'RC:TxtMsg'">{{item.latestMessage.text}}</span>
+                        <span v-if="item.objectName == 'RC:ImgMsg'">[图片]</span>
+                        <span v-if="item.objectName == 'RC:VcMsg'">[语音]</span>
+                        <span v-if="item.objectName == 'RC:ImgTextMsg'">
+                          <em v-if="item.latestMessage.title == 'give_gift_message'">[礼物]</em>
+                          <em v-if="item.latestMessage.title == 'call_message'">{{item.latestMessage.description}}</em>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="swiper-slide" style="width:80px;height:70px">
+                  <div class="message-close" @click.stop="closeMessage(item.targetId)">
+                    <span>删除</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/vue.js"></script>
+<script type="text/javascript" src="../script/swiper.min.js"></script>
+<script type="text/javascript">
+  var app, rong, swiper;
+  apiready = function () {
+    rong = api.require('rongCloud2');
+    app = new Vue({
+      el: '#app',
+      data: {
+        id: $api.getStorage('uid'),
+        name: $api.getStorage('uname'),
+        avatar: $api.getStorage('uavatar'),
+        conversationList: [],
+        adminMessage: {
+          objectName: '',
+          latestMessage: {
+            extra: {},
+            text: ''
+          },
+          unreadMessageCount: 0,
+          sentTime: 0,
+        },
+        waiterMessage: {
+          objectName: '',
+          latestMessage: {
+            extra: {},
+            text: ''
+          },
+          unreadMessageCount: 0,
+          sentTime: 0,
+        },
+        messageBadge: false,
+        pop: false,
+        showId: true,
+        waiter: {},
+        closeShow: 999,
+        startX: 0,
+        moveX: 0,
+        endX: 0,
+        resultX: 0,
+      },
+      created: function () {
+        var _this = this;
+        if (_this.id == 2) {
+          _this.showId = false
+        }
+        if (_this.id != 2) {
+          _this.showId = true
+        }
+        api.setRefreshHeaderInfo({
+          bgColor: '#ccc',
+          textColor: '#fff',
+          textDown: '下拉刷新...',
+          textUp: '松开刷新...'
+        }, function (ret, err) {
+          if (!!$api.getStorage('token')) {
+            setTimeout(function () {
+              _this.getMessageList();
+            }, 1000);
+          }
+        });
+        api.addEventListener({
+          name: 'refreshMessage'
+        }, function (ret, err) {
+          _this.getMessageList();
+        })
+        api.addEventListener({
+          name: 'updateConversationList'
+        }, function (ret, err) {
+          _this.getMessageList();
+        });
+      },
+      mounted: function () {
+        var _this = this;
+        _this.getMessageList();
+
+      },
+      methods: {
+        // 获取会话列表
+        getMessageList: function () {
+          var _this = this;
+          // api.showProgress({
+          //   title: '',
+          //   text: ''
+          // });
+          rong.getConversationList(function (ret, err) {
+            // api.alert({
+            // 	title: 'getConversationList',
+            // 	msg: JSON.stringify(ret)
+            // })
+            api.refreshHeaderLoadDone();
+            // api.hideProgress();
+            if (ret.status == 'success') {
+              var tempResult = [];
+              _this.messageBadge = false;
+              for (var i = 0; i < ret.result.length; i++) {
+                if (ret.result[i].conversationType != 'PRIVATE' || ret.result[i].objectName == 'RC:VCSummary') {
+                  continue;
+                }
+                if (ret.result[i].latestMessage.extra != undefined) {
+                  var s = ret.result[i].latestMessage.extra;
+                  s = JSON.parse(s)
+                  if ((s.fromId == 2 || s.toId == 2) && _this.id != 2) {
+                    _this.waiterMessage.objectName = ret.result[i].objectName;
+                    _this.waiterMessage.unreadMessageCount = ret.result[i].unreadMessageCount;
+                    _this.waiterMessage.sentTime = ret.result[i].sentTime;
+                    _this.waiterMessage.latestMessage.text = ret.result[i].latestMessage.text;
+                    _this.waiterMessage.latestMessage.extra = JSON.parse(ret.result[i].latestMessage.extra);
+                    _this.waiter = _this.waiterMessage.latestMessage.extra
+                    if (_this.waiterMessage.latestMessage.extra.fromId == _this.id) {
+                      _this.waiter.fromName = _this.waiterMessage.latestMessage.extra.toName
+                      _this.waiter.fromAvatar = _this.waiterMessage.latestMessage.extra.toAvatar
+                    }
+                  } else if (ret.result[i].senderUserId == 'admina') {
+                    _this.adminMessage.objectName = ret.result[i].objectName;
+                    _this.adminMessage.unreadMessageCount = ret.result[i].unreadMessageCount;
+                    _this.adminMessage.sentTime = ret.result[i].sentTime;
+                    _this.adminMessage.latestMessage.text = ret.result[i].latestMessage.text;
+                    _this.adminMessage.latestMessage.extra = JSON.parse(ret.result[i].latestMessage.extra);
+                  } else {
+                    var z = ret.result[i].latestMessage.extra
+                    z = JSON.parse(z)
+                    if (z.fromId == $api.getStorage('uid')) {
+                      ret.result[i].getAvatar = z.toAvatar
+                    } else {
+                      ret.result[i].getAvatar = z.fromAvatar
+                    }
+                    if (z.fromId == $api.getStorage('uid')) {
+                      ret.result[i].getName = z.toName
+                    } else {
+                      ret.result[i].getName = z.fromName
+                    }
+                    tempResult.push(ret.result[i]);
+                  }
+                  if (ret.result[i].unreadMessageCount > 0) {
+                    _this.messageBadge = true;
+                  }
+                }
+
+              }
+              _this.conversationList = tempResult;
+              if (_this.conversationList.length > 0) {
+                _this.pop = true;
+              }
+              if (!_this.messageBadge) {
+                api.sendEvent({
+                  name: 'cleanMessageBadge',
+                  extra: {
+                    key: 'value'
+                  }
+                });
+              }
+              setTimeout(function () {
+                var mySwiper = new Swiper('.swiper-container', {
+                  resistanceRatio: 0,
+                  slidesPerView: 'auto',
+                  freeMode: false,
+                  resistanceRatio: 0.1,
+                  on: {
+                    touchStart: function (event) {
+                      api.refreshHeaderLoadDone();
+                    },
+                    touchMove: function (event) {
+                      api.refreshHeaderLoadDone();
+                    },
+                  },
+                })
+              }, 300);
+            }
+          })
+        },
+        // 打开im页面
+        openIM: function (item) {
+          this.closeShow = 'false'
+          if (item == 'waiter') {
+            api.openWin({
+              name: 'im',
+              url: 'im.html',
+              pageParam: this.waiterMessage.latestMessage.extra
+            });
+          } else {
+            api.openWin({
+              name: 'im',
+              url: 'im.html',
+              pageParam: JSON.parse(item.latestMessage.extra)
+            });
+          }
+        },
+
+        // 打开系统消息页面
+        openAdminMessage: function () {
+          api.openWin({
+            name: 'admin_message',
+            url: 'admin_message.html',
+            pageParam: this.adminMessage.latestMessage.extra
+          });
+        },
+
+        // 打开通话记录
+        openCallRecord: function () {
+          api.openWin({
+            name: 'call_record',
+            url: 'call_record.html',
+            slidBackEnabled: false
+          });
+        },
+
+        // 打开我的关注
+        openMyFollow: function () {
+          api.openWin({
+            name: 'my_follow',
+            url: 'my_follow.html',
+            slidBackEnabled: false
+          });
+        },
+
+        // 打开社区动态
+        openCommunity: function () {
+          api.openWin({
+            name: 'community',
+            url: 'community.html',
+            slidBackEnabled: false
+          });
+        },
+
+        //消息滑动开始
+        messageStart: function (event) {
+          this.startX = event.touches[0].clientX
+        },
+        messageMove: function (event) {
+          this.moveX = event.touches[0].clientX
+          this.resultX = this.moveX - this.startX
+        },
+        messageEnd: function (event, i) {
+          if (this.resultX < -10) {
+            this.closeShow = i;
+          } else if (this.resultX > 10) {
+            this.closeShow = 'false'
+          }
+          // this.endX=event.touches[0].clientX
+        },
+        //点击隐藏删除按钮
+        closeHide: function () {
+          this.closeShow = 'false'
+        },
+        //删除消息
+        closeMessage: function (targetId) {
+          var _this = this;
+          _this.closeShow = 999
+          rong.clearMessages({
+            conversationType: 'PRIVATE',
+            targetId: targetId,
+          }, function (ret, err) {
+            _this.getMessageList();
+          })
+        }
+      },
+      filters: {
+        getAvatar: function (item) {
+          if (JSON.parse(item.latestMessage.extra != undefined)) {
+            var tempJson = JSON.parse(item.latestMessage.extra);
+            if (tempJson.fromId == $api.getStorage('uid')) {
+              return tempJson.toAvatar
+            } else {
+              return tempJson.fromAvatar;
+            }
+          }
+        },
+        getName: function (item) {
+          if (JSON.parse(item.latestMessage.extra != undefined)) {
+            var tempJson = JSON.parse(item.latestMessage.extra);
+            if (tempJson.fromId == $api.getStorage('uid')) {
+              return tempJson.toName
+            } else {
+              return tempJson.fromName;
+            }
+          }
+        },
+        timeFormat: function (value) {
+          var now = new Date().getTime(),
+            oldTime = new Date(value).getTime(),
+            difference = now - oldTime,
+            result = '',
+            minute = 1000 * 60,
+            hour = minute * 60,
+            day = hour * 24,
+            halfamonth = day * 15,
+            month = day * 30,
+            year = month * 12,
+            _year = difference / year,
+            _month = difference / month,
+            _week = difference / (7 * day),
+            _day = difference / day,
+            _hour = difference / hour,
+            _min = difference / minute;
+          if (_year >= 1) {
+            result = ~~(_year) + " 年前"
+          } else if (_month >= 1) {
+            result = ~~(_month) + " 个月前"
+          } else if (_week >= 1) {
+            result = ~~(_week) + " 周前"
+          } else if (_day >= 1) {
+            result = ~~(_day) + " 天前"
+          } else if (_hour >= 1) {
+            result = ~~(_hour) + " 小时前"
+          } else if (_min >= 1) {
+            result = ~~(_min) + " 分钟前"
+          } else result = "刚刚";
+          return result;
+        },
+      }
+    })
+  };
+</script>

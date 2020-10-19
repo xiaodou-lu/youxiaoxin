@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+  <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+  <title>视频通话控制层</title>
+  <link rel="stylesheet" type="text/css" href="../css/api.css" />
+  <link rel="stylesheet" type="text/css" href="../css/call.css" />
+</head>
+
+<body>
+  <div id="app" v-cloak>
+    <div class="wrap flex-wrap flex-vertical">
+      <div class="call-wrap flex-con">
+        <div v-if="give_gift_prompt" class="give-gift-prompt">
+          <img class="user-avatar" :src="u_avatar" alt="">
+          <div class="user-info">
+            <div class="user-name">{{u_name}}</div>
+            <div class="info">送 {{up_name}}</div>
+          </div>
+          <img class="give-gift-img" :src="give_gift_img" alt="">
+          <div class="give-gift-count">x {{give_gift_count}}</div>
+        </div>
+        <div :class="['user-info', isConnect ? 'hidden' : '']">
+          <div class="name">{{name}}</div>
+          <div class="avatar">
+            <img :src="avatar" alt="">
+          </div>
+          <div class="info">
+            <span :class="['sex', 'sex' + sex]">
+              <i :class="['iconfont', 'icon-sex' + sex]"></i>{{age}}</span>
+          </div>
+          <div class="signature">{{signature}}</div>
+          <div v-if="!isConnect" class="tishi">
+            严禁出现色情、淫秽、政治、赌博等违反国家法律法规等内容，一经发现将封停账号。
+          </div>
+        </div>
+        <div v-if="!isConnect" class="tips">{{tips}}</div>
+        <div class="control">
+          <div v-if="isConnect" class="timer">{{timeText}}</div>
+          <div v-if="isConnect" class="menu-list">
+            <!-- <div class="menu-item">
+              <div class="menu-icon">
+                <i class="iconfont icon-guanzhu0"></i>
+              </div>
+              <div class="menu-text">关注</div>
+            </div> -->
+            <div v-if="type == 'videoCall'" class="menu-item">
+              <div class="menu-icon" @click="switchCamera">
+                <i class="icon icon-camera"></i>
+              </div>
+              <div class="menu-text">切换摄像头</div>
+            </div>
+            <!-- <div class="menu-item">
+              <div class="menu-icon">
+                <i class="iconfont icon-jingyin"></i>
+              </div>
+              <div class="menu-text">静音</div>
+            </div> -->
+            <div class="menu-item">
+              <div class="menu-icon" @click="openGiftBox">
+                <i class="iconfont icon-gift"></i>
+              </div>
+              <div class="menu-text">礼物</div>
+            </div>
+            <div v-if="type == 'videoCall'" class="menu-item">
+              <div class="menu-icon" @click="enableBeautify">
+                <i class="icon icon-meiyan"></i>
+              </div>
+              <div class="menu-text">美颜</div>
+            </div>
+            <!-- <div class="menu-item">
+              <div class="menu-icon">
+                <i class="iconfont icon-jinggao"></i>
+              </div>
+              <div class="menu-text">举报</div>
+            </div> -->
+            <div v-if="type == 'voiceCall'" :class="['menu-item', audioProfile == 0 ? '' : 'active']" @click="setAudioProfile">
+              <div class="menu-icon">
+                <i class="iconfont icon-gaopinzhiyinzhi"></i>
+              </div>
+              <div class="menu-text">高质</div>
+            </div>
+            <div v-if="type == 'voiceCall'" :class="['menu-item', enableSpeakerphone ? 'active' : '']" @click="setEnableSpeakerphone">
+              <div class="menu-icon">
+                <i class="iconfont icon-mianti"></i>
+              </div>
+              <div class="menu-text">免提</div>
+            </div>
+          </div>
+          <div class="control-wrap">
+            <div @click="hangUp" class="control-item hangUp">
+              <i class="icon icon-hangUp"></i>
+              <span>挂断</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/vue.js"></script>
+<script type="text/javascript" src="../script/common.js"></script>
+<script type="text/javascript">
+  var app;
+  apiready = function () {
+    app = new Vue({
+      el: '#app',
+      data: {
+        id: '',
+        name: '',
+        avatar: '',
+        sex: '',
+        age: '',
+        signature: '',
+        isConnect: false,
+        tips: '',
+        extra: {},
+        type: '',
+        time: 0,
+        timeText: '00:00:00',
+        message: '',
+        message_num: 0,
+        message_extra: '',
+        rechargeflag: true,
+        audioProfile: 0, // 0标准模式 1高质量模式
+        enableSpeakerphone: false, //是否打开扬声器模式
+        give_gift_prompt: false,
+        give_gift_img: '',
+        give_gift_count: 1,
+        u_avatar: '',
+        u_name: '',
+        up_name: '',
+      },
+      created: function () {
+        var _this = this;
+        api.addEventListener({
+          name: 'callIsConnect'
+        }, function (ret, err) {
+          _this.isConnect = true;
+          _this.timer(0);
+        });
+        api.addEventListener({
+          name: 'setAudioProfileCallBack'
+        }, function (ret, err) {
+          _this.audioProfile = ret.value.audioProfile;
+        });
+        api.addEventListener({
+          name: 'setEnableSpeakerphoneCallBack'
+        }, function (ret, err) {
+          _this.enableSpeakerphone = ret.value.enableSpeakerphone;
+        });
+        api.addEventListener({
+          name: 'message'
+        }, function (ret, err) {
+          if (ret.value.fromId != _this.extra.toId) {
+						return false;
+					}
+					if(!!ret.value.GiftSvga) {
+						api.openFrame({
+							name: 'svga',
+							url: 'svga.html',
+							rect: {
+								x: 0,
+								y: 0,
+								w: api.winWidth,
+								h: api.winHeight
+							},
+							bounces: false,
+							pageParam: ret.value
+						});
+					} else {
+            _this.u_avatar = ret.value.fromAvatar;
+            _this.u_name = ret.value.fromName;
+            _this.up_name = ret.value.toName;
+            if (_this.give_gift_img == ret.value.GiftImg) {
+              _this.give_gift_count++;
+            }
+            _this.give_gift_img = ret.value.GiftImg;
+            _this.give_gift_prompt = true;
+            setTimeout( function () {
+              _this.give_gift_prompt = false;
+              _this.give_gift_img = '';
+              _this.give_gift_count = 1;
+            }, 5000);
+          }
+        });
+      },
+      mounted: function () {
+        this.getPageParam();
+      },
+      methods: {
+        // 获取页面传入数据
+        getPageParam: function () {
+          var _this = this;
+          _this.extra = api.pageParam.extra;
+          _this.type = api.pageParam.type;
+          _this.id = _this.extra.toId;
+          _this.name = _this.extra.toName;
+          _this.avatar = _this.extra.toAvatar;
+          _this.sex = api.pageParam.sex;
+          _this.age = api.pageParam.age;
+          _this.time = api.pageParam.time;
+          _this.signature = api.pageParam.signature;
+          if (_this.type == 'voiceCall') {
+            _this.tips = '正在邀请' + _this.extra.toName + '语音通话……'
+          }
+          if (_this.type == 'videoCall') {
+            _this.tips = '正在邀请' + _this.extra.toName + '视频通话……'
+          }
+        },
+
+        // 计时器
+        timer: function (t) {
+          var _this = this;
+          var time = t,
+            hour = 0,
+            minute = 0,
+            second = 0,
+            tempMinute = 0;
+          second = time % 60;
+          tempMinute = Math.floor(time / 60);
+          minute = tempMinute % 60;
+          hour = Math.floor(tempMinute / 60);
+          _this.timeText = hour < 10 ? '0' + hour + ':' : hour + ':';
+          _this.timeText += minute < 10 ? '0' + minute + ':' : minute + ':';
+          _this.timeText += second < 10 ? '0' + second : second + '';
+          if (minute >= (_this.time - 2)) {
+            if (_this.rechargeflag) {
+              api.sendEvent({
+                name: 'callTime',
+                extra: {
+                  con: '您剩余港币视频通话已不足2分钟，请及时充值'
+                }
+              });
+              _this.rechargeflag = false;
+            }
+          }
+          if (minute >= _this.time) {
+            api.toast({
+              msg: '您的港币已用完，结束视频通话'
+            });
+            _this.hangUp();
+          }
+          time++;
+          setTimeout(function () {
+            _this.timer(time);
+          }, 1000);
+        },
+
+        openGiftBox: function () {
+          api.sendEvent({
+            name: 'openGiftBox',
+          })
+        },
+
+        switchCamera: function () {
+          api.sendEvent({
+            name: 'switchCamera',
+          })
+        },
+
+        enableBeautify: function () {
+          api.sendEvent({
+            name: 'enableBeautify',
+          })
+        },
+
+        setAudioProfile: function () {
+          api.sendEvent({
+            name: 'setAudioProfile',
+          })
+        },
+
+        setEnableSpeakerphone: function () {
+          api.sendEvent({
+            name: 'setEnableSpeakerphone',
+          })
+        },
+        // 挂断
+        hangUp: function () {
+          var _this = this;
+          api.sendEvent({
+            name: 'videoCallHangUp',
+          })
+        },
+        closeMessage: function () {
+          var _this = this;
+          _this.message = '';
+          _this.message_extra = '';
+          _this.message_num = 0;
+        }
+      },
+    })
+  }
+</script>

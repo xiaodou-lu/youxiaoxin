@@ -1,0 +1,347 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+  <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+  <title>附近的人</title>
+  <link rel="stylesheet" type="text/css" href="../css/api.css" />
+  <link rel="stylesheet" type="text/css" href="../css/nearby.css" />
+</head>
+
+<body>
+  <div id="app" v-cloak>
+    <div class="wrap flex-wrap flex-vertical">
+      <div class="flex-con">
+        <div v-if="list.length > 0" class="list-wrap">
+          <div @click="openDetail(item.member_id)" v-for="(item, i) in list" :key="item.member_id"
+            class="list-item">
+            <div class="avatar">
+              <img :src="item.avatar + '?imageView2/1/w/100/h/100'" alt="">
+            </div>
+            <div class="info-wrap">
+              <div class="name">
+                <span class="name-text">{{item.name}}</span>
+                <span :class="['age' + item.sex, 'age']">
+                  <i :class="['icon-sex-' + item.sex, 'icon']"></i>{{item.age}}</span>
+                <span class="user-status">{{item.status | getStatus}}</span>
+              </div>
+              <div class="info">{{city}}</div>
+            </div>
+            <i class="icon icon-video" @click.stop="call(i)"></i>
+          </div>
+        </div>
+        <div v-else class="empty-wrap">
+          <img class="empty-img" src="../image/empty.png">
+          <div class="empty-text">😔暂无附近的人</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/vue.js"></script>
+<script type="text/javascript" src="../script/common.js"></script>
+<script type="text/javascript">
+  var app, dialogBox;
+  apiready = function () {
+    dialogBox = api.require('dialogBox');
+    app = new Vue({
+      el: '#app',
+      data: {
+        list: [],
+        info: {},
+        city: '',
+        page: 1,
+      },
+      created: function () {
+        var _this = this;
+        api.setRefreshHeaderInfo({
+          bgColor: '#ccc',
+          textColor: '#fff',
+          textDown: '下拉刷新...',
+          textUp: '松开刷新...'
+        }, function (ret, err) {
+          _this.page = 1;
+          setTimeout(function () {
+            _this.getHomeLocal();
+          }, 1000);
+        });
+        api.addEventListener({
+          name: 'scrolltobottom',
+          extra: {
+            threshold: 0
+          }
+        }, function (ret, err) {
+          setTimeout(function () {
+            _this.getHomeLocal();
+          }, 500);
+        });
+      },
+      mounted: function () {
+        var _this = this;
+        _this.getHomeLocal();
+      },
+      methods: {
+        getHomeLocal: function () {
+          var _this = this;
+          // api.showProgress({
+          //   title: '',
+          //   text: ''
+          // });
+          api.ajax({
+            url: baseUrl + 'home/local',
+            method: 'get',
+            headers: {
+              token: $api.getStorage('deviceToken')
+            },
+            data: {
+              values: {
+                uid: $api.getStorage('uid'),
+                page: _this.page
+              },
+            }
+          }, function (ret, err) {
+            api.refreshHeaderLoadDone();
+            // api.hideProgress();
+            if (ret.status == 200) {
+              if (_this.page == 1) {
+                _this.page++;
+                _this.list = ret.data.list;
+                _this.city = ret.city;
+                _this.info = ret.info;
+              } else if (_this.page <= ret.pagination.last_page) {
+                _this.page++;
+                for (var i = 0; i < ret.data.list.length; i++) {
+                  _this.list.push(ret.data.list[i])
+                }
+              } else {
+                api.toast({
+                  msg: '没有更多了'
+                })
+              }
+            }
+          })
+        },
+
+        call: function (i) {
+          var _this = this;
+          if (_this.info.level == '0') {
+            _this.openDialogBox('开通会员和附近的人通话');
+            return false;
+          }
+          var tempExtra = {
+            fromId: $api.getStorage('uid'),
+            fromName: $api.getStorage('uname'),
+            fromAvatar: $api.getStorage('uavatar'),
+            toId: _this.list[i].member_id,
+            toName: _this.list[i].name,
+            toAvatar: _this.list[i].avatar,
+          };
+					api.ajax({
+						url: baseUrl + 'message/videoCall',
+						method: 'post',
+						headers: {
+							token: $api.getStorage('deviceToken')
+						},
+						data: {
+							values: {
+								uid: $api.getStorage('uid'),
+								from_uid: $api.getStorage('uid'),
+								to_uid: tempExtra.toId,
+								type: '0',
+							},
+						}
+					}, function (ret, err) {
+						if (ret.status == 200) {
+							api.openWin({
+								name: 'call1',
+								url: 'call1.html',
+								slidBackEnabled: false,
+								pageParam: {
+									extra: tempExtra,
+									type: 'voiceCall',
+									time: ret.data.time,
+								}
+							});
+						} else if (ret.status == 401) {
+							_this.showRechargeDialog(ret.message[0]);
+						} else {
+							api.toast({
+								msg: ret.message[0]
+							})
+						}
+					})
+        },
+
+        openDialogBox: function (txt) {
+          dialogBox.raffle({
+            texts: {
+              mainText: txt,
+              subText: '',
+              leftTitle: '开通会员'
+            },
+            styles: {
+              bg: '#272320',
+              w: 300,
+              corner: 2,
+              icon: {
+                marginT: 20,
+                w: 40,
+                h: 40,
+                corner: 20,
+                iconPath: 'widget://image/icon_big_vip.png'
+              },
+              main: {
+                marginT: 10,
+                color: '#fff',
+                size: 14,
+              },
+              sub: {
+                marginT: 10
+              },
+              left: {
+                w: 300,
+                h: 50,
+                marginL: 0,
+                marginB: 0,
+                corner: 2,
+                bg: '#000',
+                color: '#fff',
+                size: 16
+              }
+            },
+            tapClose: true
+          }, function (ret, err) {
+            if (ret.eventType == 'left') {
+              dialogBox.close({
+                dialogName: 'raffle'
+              });
+              api.openWin({
+                name: 'my_vip',
+                url: 'my_vip.html',
+                slidBackEnabled: false
+              });
+            }
+          });
+        },
+
+        showRechargeDialog: function (title) {
+					dialogBox.evaluation({
+						styles: {
+							bg: '#fff',
+							corner: 2,
+							w: 300,
+							title: {
+								marginT: 20,
+								size: 14,
+								h: 50,
+								color: '#000',
+								bold: true,
+								borderColor: '#eee',
+								borderWidth: 1
+							},
+							buttons: [{
+								w: 300,
+								h: 50,
+								color: '#0077ff',
+								size: 14,
+								borderColor: '#eee',
+								borderWidth: 1
+							}, {
+								w: 300,
+								h: 50,
+								color: '#0077ff',
+								size: 14,
+								borderColor: '#eee',
+								borderWidth: 1
+							}, {
+								w: 300,
+								h: 50,
+								color: '#000',
+								size: 14
+							}]
+						},
+						texts: {
+							title: title,
+							buttons: [{
+								text: '去赚钱'
+							}, {
+								text: '去充值'
+							}, {
+								text: '取消'
+							}]
+						},
+						tapClose: true
+					}, function (ret, err) {
+						if (ret) {
+							if (ret.index == 0) {
+								dialogBox.close({
+									dialogName: 'evaluation'
+								});
+								api.openWin({
+									name: 'my_share',
+									url: 'my_share.html',
+									slidBackEnabled: false
+								});
+							}
+							if (ret.index == 1) {
+								dialogBox.close({
+									dialogName: 'evaluation'
+								});
+								api.openWin({
+									name: 'recharge',
+									url: 'recharge.html',
+									slidBackEnabled: false
+								});
+							}
+							if (ret.index == 2) {
+								dialogBox.close({
+									dialogName: 'evaluation'
+								});
+							}
+						}
+					});
+				},
+
+        // 个人主页
+        openDetail: function (id) {
+          var _this = this;
+          if (_this.info.level == '0') {
+            _this.openDialogBox('开通会员查看附近的人');
+          } else {
+            api.openWin({
+              name: 'user_home',
+              url: 'user_home.html',
+              slidBackEnabled: false,
+              pageParam: {
+                member_id: id
+              }
+            });
+          }
+        },
+
+      },
+      filters: {
+        getStatus: function (value) {
+          if (value == '0') {
+            return '1个小时来过';
+          }
+          if (value == '1') {
+            return '正在活跃';
+          }
+          if (value == '2') {
+            return '刚刚来过';
+          }
+          if (value == '4') {
+            return '超级活跃';
+          }
+        }
+      }
+    })
+  }
+</script>

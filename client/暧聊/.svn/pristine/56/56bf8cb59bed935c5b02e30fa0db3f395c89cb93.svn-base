@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+  <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+  <title>诱导视频</title>
+  <link rel="stylesheet" type="text/css" href="../css/api.css" />
+  <link rel="stylesheet" type="text/css" href="../css/video.css" />
+</head>
+
+<body>
+  <div id="app">
+    <div class="videoControl-wrap">
+    </div>
+  </div>
+</body>
+
+</html>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/vue.js"></script>
+<script type="text/javascript" src="../script/common.js"></script>
+<script type="text/javascript">
+  var app, videoPlayer;
+  apiready = function () {
+    videoPlayer = api.require('videoPlayer');
+    app = new Vue({
+      el: '#app',
+      data: {
+        dataInfo: {},
+        videos: '',
+        video: ''
+      },
+      created: function () {
+        var _this = this;
+        api.addEventListener({
+          name: 'close_invite_video'
+        }, function (ret, err) {
+          api.closeWin();
+        });
+        api.addEventListener({
+          name: 'mute'
+        }, function(ret, err) {
+          videoPlayer.setVolume({
+            volume: 0
+          });
+        });
+        api.addEventListener({
+          name: 'viewappear'
+        }, function(ret, err) {
+          videoPlayer.setVolume({
+            volume: 0.5
+          });
+        });
+      },
+      mounted: function () {
+        var _this = this;
+        _this.videos = $api.getStorage('videos')
+        _this.video = this.videos[parseInt(this.videos.length * Math.random())];
+        this.initVideoPlayer();
+        this.videoControl();
+      },
+      methods: {
+        initVideoPlayer: function () {
+          var _this = this;
+          videoPlayer.open({
+            rect: {
+              x: 0,
+              y: 0,
+              w: api.winWidth,
+              h: api.winHeight,
+            },
+            path: _this.video,
+            scalingMode: 'scaleAspectFit',
+          }, function (ret, err) {
+            if (ret) {
+              console.log(JSON.stringify(ret))
+            }
+          });
+          videoPlayer.addEventListener({
+            name: 'play'
+          }, function (ret, err) {
+            if (ret && ret.eventType == 'complete') {
+              videoPlayer.close();
+              api.closeWin();
+            }
+          });
+        },
+
+        // 初始化video控制层
+        videoControl: function () {
+          // 打开video控制层
+          api.openFrame({
+            name: 'invite_video_control',
+            url: 'invite_video_control.html',
+            rect: {
+              x: 0,
+              y: 0,
+              w: api.winWidth,
+              h: api.winHeight
+            }
+          });
+        },
+
+      }
+    })
+  }
+</script>

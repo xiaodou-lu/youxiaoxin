@@ -1,0 +1,386 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+  <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+  <title>首页</title>
+  <link rel="stylesheet" type="text/css" href="../css/api.css" />
+  <link rel="stylesheet" type="text/css" href="../css/home.css" />
+
+</head>
+
+<body>
+  <div id="app" v-cloak>
+    <div class="wrap flex-wrap flex-vertical">
+      <div class="home-main flex-con">
+        <div v-if="banner.length > 0" id="banner" class="banner-wrap"></div>
+        <div @click="randomCall" class="random-wrap">
+          <div class="random-icon">
+            <img src="../image/random-img.png" alt="">
+          </div>
+          <div class="random-info">
+            <div class="random-title">
+              <span class="info">随机匹配</span>
+              <span class="people">{{random.people}}人正在偶遇</span>
+            </div>
+            <!-- <div class="random-price">{{random.scale}}金币/分</div> -->
+          </div>
+          <div class="random-avatar">
+            <div class="avatar" v-for="(item, index) in random.list" :key="index">
+              <img :src="item" alt="">
+            </div>
+            <i class="iconfont icon-next"></i>
+          </div>
+        </div>
+        <div class="homeList flex-con" id="homeList">
+          <div v-for="(item, index) in homeList" key=item.member_id class="homeList-item">
+            <div class="item-con">
+              <img @click="openDetail(item.member_id)" class="main-img" :src="item.avatar + '?imageView2/1/w/300/h/300'" alt="">
+              <div class="status-wrap">
+                <i :class="['status' + item.status]"></i>{{item.status | getStatus}}
+              </div>
+              <div class="bottom-bg"></div>
+              <div class="user-wrap" @click="openDetail(item.member_id)">
+                <span class="name">{{item.name}}</span>
+                <span class="location">{{item.city == 'undefined' ? '' : item.city}}</span>
+              </div>
+              <!-- <div class="location-wrap">
+                <span>{{item.price}}港币/分</span>
+              </div> -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/vue.js"></script>
+<script type="text/javascript" src="../script/common.js"></script>
+<script type="text/javascript">
+  var app, dialogBox;
+  apiready = function () {
+    dialogBox = api.require('dialogBox');
+    app = new Vue({
+      el: '#app',
+      data: {
+        banner: [],
+        random: {
+          people: 962,
+          list: []
+        },
+        homeList: [],
+        info: {},
+        page: 1,
+        sex: 0,
+      },
+      created: function () {
+        var _this = this;
+        api.setRefreshHeaderInfo({
+          bgColor: '#ccc',
+          textColor: '#fff',
+          textDown: '下拉刷新...',
+          textUp: '松开刷新...'
+        }, function (ret, err) {
+          _this.page = 1;
+          setTimeout(function () {
+            _this.getHomeIndex();
+          }, 1000);
+        });
+        api.addEventListener({
+          name: 'refreshHome'
+        }, function (ret, err) {
+          _this.page = 1;
+          _this.getHomeIndex();
+        });
+        api.addEventListener({
+          name: 'scrolltobottom',
+          extra: {
+            threshold: 0
+          }
+        }, function (ret, err) {
+          setTimeout(function () {
+            _this.getHomeIndex();
+          }, 500);
+        });
+      },
+      mounted: function () {
+        var _this = this;
+        _this.getHomeIndex();
+        // 诱导弹出页面
+        if (!!$api.getStorage('videos') && $api.getStorage('videos').length > 0 && !!$api.getStorage('videos')[0]) {
+          var t2 = setTimeout(function () {
+            if (_this.info.certification == 0) {
+              if (_this.info.level == 0) {
+                _this.jumpVoice();
+              }
+            }
+          }, 10000)
+          var t3 = setInterval( function () {
+            if (_this.info.certification == 0) {
+              if (_this.info.level == 0) {
+                _this.jumpVoice()
+              }
+            }
+          }, (Math.floor(Math.random() * (60 - 21)) + 30)*1000)
+          api.addEventListener({
+            name: 'clearTimer'
+          }, function (ret, err) {
+            if (ret) {
+              clearTimeout(t2)
+              clearInterval(t3)
+            }
+          });
+        }
+      },
+      methods: {
+        jumpVoice: function () {
+          var _this = this;
+          api.openWin({
+            name: 'invite_video',
+            url: 'invite_video.html',
+            pageParam: {
+              sex: _this.sex
+            }
+          })
+        },
+
+        initBanner: function () {
+          var _this = this;
+          var banner_offset = $api.offset($api.dom('#banner'));
+          if (_this.banner.length > 0) {
+            var bannerList = [];
+            for (var i = 0; i < _this.banner.length; i++) {
+              bannerList.push(_this.banner[i].ad_file);
+            }
+            var UIScrollPicture = api.require('UIScrollPicture');
+            UIScrollPicture.open({
+              rect: {
+                x: banner_offset.l,
+                y: banner_offset.t,
+                w: banner_offset.w,
+                h: banner_offset.h
+              },
+              data: {
+                paths: bannerList
+              },
+              styles: {
+                caption: {
+                  height: 35,
+                  color: '#E0FFFF',
+                  size: 13,
+                  bgColor: '#696969',
+                  position: 'bottom'
+                },
+                indicator: {
+                  dot:{
+                    w: 10,
+                    h: 10,
+                    r: 5,
+                    margin: 20
+                  },
+                  align: 'center',
+                  color: '#FFFFFF',
+                  activeColor: '#DA70D6'
+                }
+              },
+              contentMode: 'ScaleAspectFill',
+              interval: 3,
+              fixedOn: api.frameName,
+              loop: true,
+              fixed: false
+            }, function(ret, err) {
+              if (ret) {
+                if (ret.eventType == 'click') {
+                  _this.openBanner(_this.banner[ret.index]);
+                }
+              }
+            });
+            // swiper
+            // var bannerSwiper = new Swiper('.swiper-container', {
+            //   loop: true,
+            //   pagination: {
+            //     el: '.swiper-pagination',
+            //   },
+            // });
+          }
+        },
+
+        openBanner: function (item) {
+          api.openWin({
+            name: 'webview',
+            url: 'webview.html',
+            pageParam: item
+          });
+        },
+
+        getHomeIndex: function () {
+          var _this = this;
+          // api.showProgress({
+          //   title: '',
+          //   text: ''
+          // });
+          api.ajax({
+            url: baseUrl + 'home/index',
+            method: 'get',
+            headers: {
+              token: $api.getStorage('deviceToken')
+            },
+            data: {
+              values: {
+                uid: $api.getStorage('uid'),
+                type: 'home',
+                page: _this.page,
+              },
+            }
+          }, function (ret, err) {
+            api.refreshHeaderLoadDone();
+            // api.hideProgress();
+            if (ret.status == 200) {
+              if (_this.page == 1) {
+                _this.page++;
+                _this.banner = ret.data.banner;
+                _this.random = ret.data.random;
+                _this.info = ret.info;
+                _this.sex = ret.info.sex;
+                if (ret.data.list.length > 0) {
+                  _this.homeList = ret.data.list;
+                }
+                setTimeout(function () {
+                  _this.initBanner();
+                }, 500);
+              } else if (_this.page <= ret.pagination.last_page) {
+                _this.page++;
+                for (var i = 0; i < ret.data.list.length; i++) {
+                  _this.homeList.push(ret.data.list[i])
+                }
+              } else {
+                api.toast({
+                  msg: '没有更多了'
+                })
+              }
+            }
+          })
+        },
+
+        openDetail: function (id) {
+          api.openWin({
+            name: 'user_home',
+            url: 'user_home.html',
+            slidBackEnabled: false,
+            pageParam: {
+              member_id: id
+            }
+          });
+        },
+
+        randomCall: function () {
+          var _this = this;
+          api.openWin({
+            name: 'random',
+            url: 'random.html',
+            slidBackEnabled: false,
+            pageParam: _this.info
+          });
+        },
+
+        getDialogBoxRecharge: function (txt) {
+          dialogBox.evaluation({
+            styles: {
+              bg: '#fff',
+              corner: 2,
+              w: 300,
+              title: {
+                marginT: 20,
+                size: 14,
+                h: 50,
+                color: '#000',
+                bold: true,
+                borderColor: '#eee',
+                borderWidth: 1
+              },
+              buttons: [{
+                w: 300,
+                h: 50,
+                color: '#0077ff',
+                size: 14,
+                borderColor: '#eee',
+                borderWidth: 1
+              }, {
+                w: 300,
+                h: 50,
+                color: '#0077ff',
+                size: 14,
+                borderColor: '#eee',
+                borderWidth: 1
+              }, {
+                w: 300,
+                h: 50,
+                color: '#000',
+                size: 14
+              }]
+            },
+            texts: {
+              title: txt,
+              buttons: [{
+                text: '去赚钱'
+              }, {
+                text: '去充值'
+              }, {
+                text: '取消'
+              }]
+            },
+            tapClose: true
+          }, function (ret, err) {
+            if (ret) {
+              if (ret.index == 0) {
+                dialogBox.close({
+                  dialogName: 'evaluation'
+                });
+                api.openWin({
+                  name: 'share',
+                  url: 'share.html',
+                  slidBackEnabled: false
+                });
+              }
+              if (ret.index == 1) {
+                dialogBox.close({
+                  dialogName: 'evaluation'
+                });
+                api.openWin({
+                  name: 'recharge',
+                  url: 'recharge.html',
+                  slidBackEnabled: false
+                });
+              }
+              if (ret.index == 2) {
+                dialogBox.close({
+                  dialogName: 'evaluation'
+                });
+              }
+            }
+          });
+        },
+
+      },
+
+      filters: {
+        getStatus: function (value) {
+          if (value == '0') {
+            return '离线';
+          }
+          if (value == '1') {
+            return '在线';
+          }
+          if (value == '4') {
+            return '忙碌';
+          }
+        },
+      }
+    })
+  }
+</script>

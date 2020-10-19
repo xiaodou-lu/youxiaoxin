@@ -1,0 +1,331 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+  <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+  <title>求约墙</title>
+  <link rel="stylesheet" type="text/css" href="../css/api.css" />
+  <link rel="stylesheet" type="text/css" href="../css/dating.css" />
+</head>
+
+<body>
+  <div id="app" v-cloak>
+    <div class="wrap">
+      <div class="dating-title">
+        <div class="tabMenu-list">
+          <span :class="['tabMenu', datingShow == 1 ? 'active' : '']" v-on:click="datingTab(1)">同城约</span>
+          <span :class="['tabMenu', datingShow == 2 ? 'active' : '']" v-on:click="datingTab(2)">红包约</span>
+        </div>
+      </div>
+      <div class="dating-list" v-show="datingShow==1">
+        <div v-if="datingList.length == 0" class="empty-wrap">
+          <img class="empty-img" src="../image/empty.png">
+          <div class="empty-text">暂无同城约信息</div>
+        </div>
+        <div class="dating-item" v-for="(item, index) in datingList" :key="item.id" @click="openDetails(item.id, index)">
+          <div class="member-wrap">
+            <div class="member-avatar">
+              <img :src="item.member.avatar" alt="">
+            </div>
+            <div class="member-info">
+              <div class="name-wrap">
+                <span class="name">{{item.member.name}}</span>
+                <span :class="['sex', 'sex' + item.member.sex]"><i :class="['iconfont', 'icon-sex' + item.member.sex]"></i>{{item.member.age}}</span>
+                <span class="time">{{item.updated_at}}</span>
+              </div>
+              <div class="city">{{item.member.city}}</div>
+            </div>
+          </div>
+          <div class="dating-content">
+            <div class="content-item">
+              <div class="item-title">求约类型:</div>
+              <div class="item-con">{{typeList[item.type-1]}}</div>
+            </div>
+            <div class="content-item">
+              <div class="item-title">求约描述:</div>
+              <div class="item-con">{{item.description}}</div>
+            </div>
+            <div class="content-item">
+              <div class="item-title">约会地点:</div>
+              <div class="item-con">{{item.place}}</div>
+            </div>
+            <div class="content-item">
+              <div class="item-title">出发时间: </div>
+              <div class="item-con">{{item.time | getFormatTime}}</div>
+            </div>
+            <div class="content-item">
+              <div class="item-title">费用预算: </div>
+              <div class="item-con">{{item.fee}}</div>
+            </div>
+            <div class="content-item">
+              <div class="item-title">费用支付: </div>
+              <div class="item-con">{{item.pay | getFormatPay}}</div>
+            </div>
+          </div>
+          <i v-if="isExpire(item)" class="iconfont icon-yijieshu"></i>
+        </div>
+      </div>
+      <div class="redPackage dating-list" v-show="datingShow==2">
+        <div v-if="redPackageList.length == 0" class="empty-wrap">
+          <img class="empty-img" src="../image/empty.png">
+          <div class="empty-text">暂无红包约信息</div>
+        </div>
+        <div v-else class="dating-item" v-for="(item, index) in redPackageList" :key="item.id">
+          <div class="member-wrap">
+            <div class="member-avatar">
+              <img :src="item.member.avatar" alt="">
+            </div>
+            <div class="member-info">
+              <div class="name-wrap">
+                <span class="name">{{item.member.name}}</span>
+                <span :class="['sex', 'sex' + item.member.sex]"><i :class="['iconfont', 'icon-sex' + item.member.sex]"></i>{{item.member.age}}</span>
+                <span class="time">{{item.updated_at}}</span>
+              </div>
+              <div class="city">{{item.member.city}}</div>
+            </div>
+          </div>
+          <div class="redPackage-content border-top">
+            <div class="redPackage-img" @click="openRedpackage(item.id)">
+              <img src="../image/redPackage.png" alt="">
+            </div>
+            <div class="redPackage-info" @click="openRedpackage(item.id)">
+              <div class="redPackage-info-item">
+                <div class="th">红包金额：</div>
+                <div class="td">
+                  <i class="icon icon-gold"></i>
+                  <!-- <img src="../image/zuan1_icon.png" alt=""> -->
+                  <span class="price">{{item.price}}</span>
+                  <span class="reply-count">（{{item.reply_count}}/{{item.num}}）</span>
+                </div>
+              </div>
+              <div class="redPackage-info-item" v-if="item.type == '1'">
+                <div class="th">红包口令：</div>
+                <div class="td">{{item.password}}</div>
+              </div>
+              <div class="redPackage-info-item time">{{item.description}}</div>
+              <span class="redPackage-info-item detail">查看领取详情</span>
+            </div>
+            <div v-if="isDisplay(item)" class="redPackage-button">
+              <button type="button" @click="getRedPackage(item)">抢红包</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/vue.js"></script>
+<script type="text/javascript" src="../script/common.js"></script>
+<script type="text/javascript">
+  var app;
+  apiready = function () {
+    app = new Vue({
+      el: '#app',
+      data: {
+        datingShow: 1,
+        datingList: [],
+        redPackageList: [],
+        page: 1,
+        typeList: ['约K歌', '约吃饭', '叫起床'],
+      },
+      created: function () {
+        var _this = this;
+        api.setRefreshHeaderInfo({
+          bgColor: '#ccc',
+          textColor: '#fff',
+          textDown: '下拉刷新...',
+          textUp: '松开刷新...'
+        }, function (ret, err) {
+          _this.page = 1;
+          setTimeout(function () {
+            if (_this.datingShow == 1) {
+              _this.getAppointmentIndex();
+            }
+            if (_this.datingShow == 2) {
+              _this.getRedIndex();
+            }
+          }, 1000);
+        });
+        api.addEventListener({
+          name: 'refreshDating'
+        }, function(ret, err){
+          _this.page = 1;
+          setTimeout(function () {
+            if (_this.datingShow == 1) {
+              _this.getAppointmentIndex();
+            }
+            if (_this.datingShow == 2) {
+              _this.getRedIndex();
+            }
+          }, 1000);
+        });
+      },
+      mounted: function () {
+        this.getAppointmentIndex();
+      },
+      methods: {
+        datingTab: function (index) {
+          this.datingShow = index
+          this.page = 1;
+          if (index == 1) {
+            this.getAppointmentIndex();
+          }
+          if (index == 2) {
+            this.getRedIndex();
+          }
+        },
+        openDetails: function (id, index) {
+          api.openWin({
+            name: 'dating_details',
+            url: 'dating_details.html',
+            pageParam: {
+              id: id
+            }
+          });
+        },
+        getAppointmentIndex: function () {
+          var _this = this;
+          api.showProgress({
+            title: '',
+            text: ''
+          });
+          api.ajax({
+            url: baseUrl + 'appointment/index',
+            method: 'get',
+            headers: {
+              token: $api.getStorage('deviceToken')
+            },
+            data: {
+              values: {
+                uid: $api.getStorage('uid'),
+                page: _this.page
+              },
+            }
+          }, function (ret, err) {
+            api.refreshHeaderLoadDone();
+            api.hideProgress();
+            if (ret.status == 200) {
+              if (_this.page == 1) {
+                _this.page++;
+                if (ret.data.length > 0) {
+                  _this.datingList = ret.data;
+                }
+              } else if (_this.page <= ret.pagination.last_page) {
+                _this.page++;
+                for (var i = 0; i < ret.data.length; i++) {
+                  _this.datingList.push(ret.data[i])
+                }
+              } else {
+                api.toast({
+                  msg: '没有更多了'
+                })
+              }
+            }
+          })
+        },
+        isExpire: function(item) {
+          var now = new Date();
+          if (item.time*1000 < now.getTime()) {
+            return true;
+          } else {
+            return false;
+          }
+        },
+        getRedIndex: function () {
+          var _this = this;
+          api.showProgress({
+            title: '',
+            text: ''
+          });
+          api.ajax({
+            url: baseUrl + 'red/index',
+            method: 'get',
+            headers: {
+              token: $api.getStorage('deviceToken')
+            },
+            data: {
+              values: {
+                uid: $api.getStorage('uid'),
+                page: _this.page
+              },
+            }
+          }, function (ret, err) {
+            api.refreshHeaderLoadDone();
+            api.hideProgress();
+            if (ret.status == 200) {
+              if (_this.page == 1) {
+                _this.page++;
+                if (ret.data.length > 0) {
+                  _this.redPackageList = ret.data;
+                }
+              } else if (_this.page <= ret.pagination.last_page) {
+                _this.page++;
+                for (var i = 0; i < ret.data.length; i++) {
+                  _this.redPackageList.push(ret.data[i])
+                }
+              } else {
+                api.toast({
+                  msg: '没有更多了'
+                })
+              }
+            }
+          })
+        },
+        isDisplay: function (item) {
+          if ($api.getStorage('uid') == item.member_id || item.reply_count == item.num) {
+            return false;
+          } else {
+            return true;
+          }
+        },
+        openRedpackage: function (id) {
+          api.openWin({
+            name: 'redPackage_details',
+            url: 'redPackage_details.html',
+            pageParam: {
+              id: id
+            }
+          });
+        },
+        getRedPackage: function (item) {
+          var _this = this;
+          var tempExtra = {
+            fromId: $api.getStorage('uid'),
+            fromName: $api.getStorage('uname'),
+            fromAvatar: $api.getStorage('uavatar'),
+            toId: item.member.member_id,
+            toName: item.member.name,
+            toAvatar: item.member.avatar,
+            red: item
+          }
+          api.openWin({
+            name: 'im',
+            url: 'im.html',
+            pageParam: tempExtra
+          });
+        },
+      },
+      filters: {
+        getFormatTime: function (value) {
+          var date = new Date(value*1000);
+          var y = date.getFullYear();
+          var m = date.getMonth() + 1;
+          m = m < 10 ? ('0' + m) : m; 
+          var d = date.getDate();
+          d = d < 10 ? ('0' + d) : d;
+          return y + '-' + m + '-' + d;
+        },
+        getFormatPay: function (value) {
+          if (value == '1') return '对方付';
+          if (value == '0') return '我付';
+          if (value == '2') return 'AA';
+        },
+      }
+    })
+  }
+</script>

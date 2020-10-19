@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+  <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+  <title>webview</title>
+  <link rel="stylesheet" type="text/css" href="../css/api.css" />
+  <link rel="stylesheet" type="text/css" href="../css/common.css" />
+</head>
+
+<body>
+  <div id="app" v-cloak>
+    <div class="wrap flex-wrap flex-vertical">
+      <header id="header">
+        <div class="header-wrap border-bottom">
+          <div class="header-left" tapmode onclick="api.closeWin();">
+            <i class="iconfont icon-pre"></i>
+          </div>
+          <div class="header-title">{{title}}</div>
+        </div>
+      </header>
+      <div id="main" class="flex-con"></div>
+    </div>
+  </div>
+</body>
+
+</html>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/vue.js"></script>
+<script type="text/javascript" src="../script/common.js"></script>
+<script type="text/javascript">
+  var app;
+  apiready = function () {
+    $api.fixStatusBar($api.dom('#header'));
+    api.setStatusBarStyle({
+      style: 'light',
+    });
+    app = new Vue({
+      el: '#app',
+      data: {
+        link: api.pageParam.ad_link,
+        title: api.pageParam.ad_name
+      },
+      created: function () {},
+      mounted: function () {
+        api.openFrame({
+          name: 'webview_frame',
+          url: this.link,
+          rect: {
+            x: 0,
+            y: $api.dom('#header').offsetHeight,
+            w: api.winWidth,
+            h: $api.dom('#main').offsetHeight
+          },
+          progress: {
+            type: 'page',
+            color: '#e12e85'
+          }
+        });
+      },
+      methods: {},
+    })
+  }
+</script>

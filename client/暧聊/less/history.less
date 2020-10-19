@@ -1,0 +1,83 @@
+// out: ../css/history.css
+@import 'common';
+.history-header{
+  width: 100%;
+  height: 50px;
+  span {
+    width: 50%;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    float: left;
+    font-size: 16px;
+    &.active{
+      color: @main-color;
+    }
+  }
+}
+.list-wrap {
+  .list-item {
+    display: flex;
+    padding: 10px;
+    align-items: center;
+    .avatar {
+      line-height: 0;
+      margin: 0 10px;
+      img {
+        width: 40px;
+        height: 40px;
+        border-radius: 40px;
+      }
+    }
+    .info-wrap {
+      flex: 1;
+      height: 100%;
+      .icon {
+        width: 10px;
+        height: 10px;
+        margin-right: 2px;
+        &.icon-sex-1 {
+          background-position: -340px -80px;
+        }
+        &.icon-sex-2 {
+          background-position: -350px -80px;
+        }
+      }
+      .name {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        font-size: 14px;
+        margin-bottom: 5px;
+        .age {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: auto;
+          height: 14px;
+          line-height: 14px;
+          margin-left: 5px;
+          padding: 0 6px;
+          color: #fff;
+          border-radius: 20px;
+          font-size: 12px;
+          text-align: center;
+        }
+        .age1 {
+          background: #3ab7f8;
+        }
+        .age2 {
+          background: #fc21fc;
+        }
+      }
+      .info {
+        font-size: 12px;
+        color: #999;
+      }
+    }
+    .icon-next {
+      font-size: 12px;
+      color: #999;
+    }
+  }
+}

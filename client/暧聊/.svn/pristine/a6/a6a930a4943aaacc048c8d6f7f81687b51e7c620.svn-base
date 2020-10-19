@@ -1,0 +1,245 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+  <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+  <title>提现</title>
+  <link rel="stylesheet" type="text/css" href="../css/api.css" />
+  <link rel="stylesheet" type="text/css" href="../css/edit.css" />
+</head>
+
+<body>
+  <div id="app" v-cloak>
+    <div class="wrap flex-wrap flex-vertical">
+      <header id="header">
+        <div class="header-wrap">
+          <div @click="goback" class="header-left">
+            <i class="iconfont icon-pre"></i>
+          </div>
+          <h1 class="header-title">提现</h1>
+        </div>
+      </header>
+      <div class="flex-con">
+        <div class="account-info">
+          <div class="label">港币余额：</div>
+          <div class="balance">
+            <i class="icon icon-gold"></i>
+            <!-- <img class="zuan-icon" src="../image/zuan2_icon.png" alt=""> -->
+            <span>{{jewel}}</span>
+          </div>
+        </div>
+        <div class="edit-info">
+          <div class="input-wrap border-bottom">
+            <div class="label">提现金额</div>
+            <input @keyup="changePrice" v-model="form.price" type="tel" placeholder="请输入提现金额">
+            <em v-if="rmb != ''">（￥{{rmb}}）</em>
+          </div>
+          <div class="input-wrap border-bottom">
+            <div class="label">真实姓名</div>
+            <input v-model="form.name" type="text" placeholder="请输入您的真实姓名">
+          </div>
+          <div class="input-wrap border-bottom">
+            <div class="label">联系电话</div>
+            <input v-model="form.tel" type="tel" placeholder="请填写联系电话">
+          </div>
+          <div class="input-wrap border-bottom">
+            <div class="label">提现方式</div>
+            <span @click="showActionSheet">{{Paytype}}</span>
+          </div>
+          <div class="input-wrap border-bottom">
+            <div class="label">账号信息</div>
+            <input v-model="form.description" type="tel" placeholder="请填写账号信息">
+          </div>
+        </div>
+        <div class="btn-wrap">
+          <button @click="withdraw" type="button" class="btn-active">提交</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/vue.js"></script>
+<script type="text/javascript" src="../script/common.js"></script>
+<script type="text/javascript">
+  var app;
+  apiready = function () {
+    $api.fixStatusBar($api.dom('#header'));
+    api.setStatusBarStyle({
+      style: 'light',
+    });
+    app = new Vue({
+      el: '#app',
+      data: {
+        form: {
+          uid: $api.getStorage('uid'),
+          price: '',
+          name: '',
+          tel: '',
+          type: '',
+          description: ''
+        },
+        Paytype: '请选择提现方式',
+        jewel: '',
+        scale: '',
+        rmb: '',
+      },
+      created: function () {
+        this.getUserIndex();
+      },
+      mounted: function () {},
+      methods: {
+        getUserIndex: function () {
+          var _this = this;
+          api.ajax({
+            url: baseUrl + 'user/index',
+            method: 'get',
+            headers: {
+              token: $api.getStorage('deviceToken')
+            },
+            data: {
+              values: {
+                uid: $api.getStorage('uid'),
+              }
+            }
+          }, function (ret, err) {
+            if (ret.status == 200) {
+              _this.jewel = ret.data.jewel;
+              _this.scale = ret.scale;
+            }
+          })
+        },
+        changePrice: function () {
+          if (this.form.price == '' || isNaN(this.form.price)) {
+            this.rmb = '';
+          } else {
+            if (isNaN(this.form.price)) {
+  
+            } else {
+              this.rmb = (parseInt(this.form.price)/parseInt(this.scale)).toFixed(2);
+            }
+          }
+        },
+        showActionSheet: function () {
+          var _this = this;
+          api.actionSheet({
+            title: '',
+            cancelTitle: '取消',
+            destructiveTitle: '',
+            buttons: ['支付宝', '微信', '银行卡']
+          }, function (ret, err) {
+            if (ret) {
+              if (ret.buttonIndex == 1) {
+                _this.Paytype = '支付宝';
+                _this.form.type = '1';
+              }
+              if (ret.buttonIndex == 2) {
+                _this.Paytype = '微信';
+                _this.form.type = '2';
+              }
+              if (ret.buttonIndex == 3) {
+                _this.Paytype = '银行卡';
+                _this.form.type = '3';
+              }
+            }
+          });
+        },
+        withdraw: function () {
+          var _this = this;
+          if (this.form.price == '') {
+            api.toast({
+              msg: '请填写提现金额',
+              duration: 2000,
+              location: 'bottom'
+            });
+            return false;
+          };
+          if (this.form.price <= 0) {
+            api.toast({
+              msg: '请填写一个正整数',
+              duration: 2000,
+              location: 'bottom'
+            });
+            return false;
+          };
+          if (this.form.price > this.jewel) {
+            api.toast({
+              msg: '港币余额不足',
+              duration: 2000,
+              location: 'bottom'
+            });
+            return false;
+          };
+          if (this.form.name == '') {
+            api.toast({
+              msg: '请填写真实姓名',
+              duration: 2000,
+              location: 'bottom'
+            });
+            return false;
+          };
+          if (this.form.phone == '') {
+            api.toast({
+              msg: '请填写联系电话',
+              duration: 2000,
+              location: 'bottom'
+            });
+            return false;
+          };
+          if (this.form.type == '') {
+            api.toast({
+              msg: '请选择提现方式',
+              duration: 2000,
+              location: 'bottom'
+            });
+            return false;
+          };
+          if (this.form.description == '') {
+            api.toast({
+              msg: '请填写提现账号信息',
+              duration: 2000,
+              location: 'bottom'
+            });
+            return false;
+          };
+          api.confirm({
+            title: '确认',
+            msg: '您确定提现' + _this.form.price + '港币吗？',
+            buttons: ['确定', '取消']
+          }, function(ret, err) {
+            if (ret.buttonIndex == 1) {
+              api.ajax({
+                url: baseUrl + 'user/withdraw',
+                method: 'post',
+                headers: {
+                  token: $api.getStorage('deviceToken')
+                },
+                data: {
+                  values: _this.form
+                }
+              }, function (ret, err) {
+                api.toast({
+                  msg: ret.message[0]
+                })
+                if (ret.status == 200) {
+                  setTimeout( function () {
+                    api.closeWin();
+                  }, 1000);
+                }
+              })
+            }
+          });
+        },
+        // 后退
+        goback: function () {
+          api.closeWin();
+        }
+      },
+
+    })
+  }
+</script>

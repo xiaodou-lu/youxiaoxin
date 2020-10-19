@@ -1,0 +1,239 @@
+// out: ../css/my.css
+@import 'common';
+
+.wrap {
+  background-color: #eff3f4;
+}
+
+.name {
+  display: flex;
+  align-items: center;
+
+  .name-text {
+    line-height: 20px;
+  }
+
+  .icon-vip1 {
+    width: 20px;
+    height: 20px;
+    margin-left: 5px;
+    background-position: -320px 0;
+  }
+
+  .icon-auth1 {
+    width: 20px;
+    height: 20px;
+    margin-left: 5px;
+    background-position: -340px -20px;
+  }
+}
+
+.user-info {
+  display: flex;
+  background-color: #fff;
+  align-items: center;
+  padding: 20px;
+  margin-bottom: 4px;
+
+  .avatar {
+    line-height: 0;
+
+    img {
+      width: 60px;
+      height: 60px;
+      border-radius: 60px;
+    }
+  }
+
+  .info {
+    flex: 1;
+    margin-left: 10px;
+
+    .name {
+      margin-bottom: 5px;
+      position: relative;
+
+      .iconfont {
+        color: #ff0080;
+      }
+    }
+
+    .sign {
+      font-size: 12px;
+    }
+  }
+}
+
+.menu-list {
+  background-color: #fff;
+  margin-bottom: 3px;
+  .menu-item {
+    display: flex;
+    height: 50px;
+    padding: 0 10px;
+    align-items: center;
+    .icon {
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+
+      &.icon-vip {
+        background-position: -320px 0;
+      }
+
+      &.icon-recharge {
+        background-position: -340px 0;
+      }
+
+      &.icon-income {
+        background-position: -360px 0;
+      }
+
+      &.icon-share {
+        background-position: -380px 0;
+      }
+
+      &.icon-follow {
+        background-position: -320px -20px;
+      }
+
+      &.icon-offer {
+        background-position: -380px -40px;
+      }
+
+      &.icon-auth1 {
+        background-position: -340px -20px;
+      }
+
+      &.icon-setting {
+        background-position: -360px -20px;
+      }
+    }
+
+    .menu-info {
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+      .title {
+        font-size: 14px;
+      }
+      .info {
+        font-size: 12px;
+        color: #666;
+      }
+    }
+
+    span {
+      margin-right: 2px;
+      color: #999;
+      font-size: 14px;
+    }
+
+    .iconfont {
+      font-size: 20px;
+      color: @main-color;
+      margin-right: 5px;
+
+      &.icon-next {
+        font-size: 14px;
+        color: #555;
+        float: right;
+      }
+      &.icon-shangcheng {
+        font-size: 24px;
+        // color: #ff0080;
+      }
+    }
+  }
+}
+
+.offer-page {
+  .form-wrap {
+    background-color: #fff;
+    padding: 30px 20px;
+
+    .input-wrap {
+      &+.input-wrap {
+        margin-top: 10px;
+      }
+
+      .label {
+        margin-bottom: 5px;
+      }
+
+      input {
+        box-sizing: border-box;
+        width: 100%;
+        height: 50px;
+        padding: 0 5px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+      }
+    }
+  }
+
+  .btn-wrap {
+    padding: 30px 20px;
+
+    button {
+      width: 100%;
+      height: 50px;
+      background-color: @main-color;
+      border-radius: 3px;
+      color: #fff;
+    }
+  }
+}
+
+.myimg {
+  width: 24px;
+  height: 24px;
+  margin-left: -2px;
+  margin-right: 7px;
+}
+
+.prompt {
+  padding-left: 20px;
+  margin-top: 10px
+}
+
+#btn-offer {
+  padding-top: 10px
+}
+.wallet-content{
+  width: 100%;
+  background: #fff;
+  margin-bottom: 2px;
+  .balance {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 70px;
+    .zuan-icon {
+      width: 20px;
+      height: 20px;
+    }
+    .icon-gold {
+      width: 20px;
+      height: 20px;
+      background-position: -340px 0;
+    }
+    span {
+      margin-left: 5px;
+      font-size: 20px;
+    }
+  }
+  .wallet-button{
+    display: flex;
+    width: 100%;
+    height: 70px;
+    justify-content: space-around;
+    align-items: center;
+    button{
+      background-color: @main-color;
+      color: #fff;
+      padding: 10px 30px;
+      border-radius: 5px;
+    }
+  }
+}

@@ -1,0 +1,402 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+  <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+  <title>动态视频详情</title>
+  <link rel="stylesheet" type="text/css" href="../css/api.css" />
+  <link rel="stylesheet" type="text/css" href="../css/dynamic_video.css" />
+</head>
+
+<body>
+  <div id="app" v-cloak>
+    <div class="control-wrap">
+      <div class="control-header">
+        <div class="goback" @click="goback">
+          <i class="iconfont icon-pre"></i>
+        </div>
+        <div class="user-wrap" @click="openUserHome(infoList.member.member_id)">
+          <div class="user-avatar">
+            <img :src="infoList.member.avatar" alt="">
+          </div>
+          <div class="user-info">
+            <div class="name">{{infoList.member.name}}</div>
+            <div class="city">{{infoList.member.city}}</div>
+          </div>
+        </div>
+      </div>
+      <div class="control-main" @click="togglePlayStatus">
+        <i v-if="!isPlaying" class="iconfont icon-bofang"></i>
+      </div>
+      <div class="control-footer">
+        <div class="description">{{infoList.description}}</div>
+        <div class="menu-list">
+          <div class="menu-item" @click="like">
+            <i class="iconfont icon-xin"></i>
+            <span>{{infoList.like_size}}</span>
+          </div>
+          <div class="menu-item" @click="openDynamicDetail">
+            <i class="iconfont icon-yanzhengma"></i>
+            <span>{{infoList.comment_size}}</span>
+          </div>
+          <div class="menu-item" @click="openActionMenu">
+            <i class="iconfont icon-fenxiang"></i>
+            <span>{{infoList.share_size}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/vue.js"></script>
+<script type="text/javascript" src="../script/common.js"></script>
+<script type="text/javascript">
+  var app, dialogBox;
+  apiready = function () {
+    dialogBox = api.require('dialogBox');
+    app = new Vue({
+      el: '#app',
+      data: {
+        infoList: api.pageParam.infoList,
+        commentList: api.pageParam.commentList,
+        isPlaying: true,
+        dblclick: true,
+        shareTitle: '',
+				shareContent: '',
+				shareUrl: '',
+				shareImage: '',
+				shareImageQQ: '',
+      },
+      created: function () {
+        var _this = this;
+      },
+      mounted: function () {
+        var _this = this;
+      },
+      methods: {
+        goback: function () {
+          api.sendEvent({
+            name: 'closeVideo',
+          });
+        },
+
+        openUserHome: function (id) {
+          api.sendEvent({
+            name: 'videoPause',
+          });
+          api.openWin({
+            name: 'user_home',
+            url: 'user_home.html',
+            slidBackEnabled: false,
+            pageParam: {
+              member_id: id
+            }
+          });
+        },
+
+        dbl: function () {
+          // todo 双击点赞
+          var _this = this;
+          this.like();
+          _this.dblclick = false;
+          setTimeout(function () {
+            _this.dblclick = true;
+          }, 500)
+        },
+
+        togglePlayStatus: function () {
+          var _this = this;
+          if (_this.isPlaying) {
+            api.sendEvent({
+              name: 'videoPause',
+            });
+          } else {
+            api.sendEvent({
+              name: 'videoPlay',
+            });
+          }
+          _this.isPlaying = !_this.isPlaying;
+        },
+
+        like: function () {
+					var _this = this;
+          api.showProgress({
+            title: '',
+            text: '',
+          });
+					api.ajax({
+						url: baseUrl + 'dynamic/like',
+						method: 'get',
+						headers: {
+							token: $api.getStorage('deviceToken')
+						},
+						data: {
+							values: {
+								uid: $api.getStorage('uid'),
+								id: _this.infoList.id
+							}
+						}
+					}, function (ret, err) {
+            api.hideProgress();
+						if (ret.status == 200) {
+							api.toast({
+								msg: ret.message[0]
+							})
+							if (ret.code == 200) {
+								_this.infoList.is_like = 1;
+								_this.infoList.like_size = parseInt(_this.infoList.like_size) + 1;
+							}
+							if (ret.code == 201) {
+                _this.infoList.is_like = 0;
+								_this.infoList.like_size = parseInt(_this.infoList.like_size) - 1;
+							}
+						}
+					})
+				},
+
+        openDynamicDetail: function () {
+          var _this = this;
+          api.sendEvent({
+            name: 'videoPause',
+          });
+          api.openWin({
+            name: 'dynamic_detail',
+            url: 'dynamic_detail.html',
+            slidBackEnabled: false,
+            pageParam: {
+              id: _this.infoList.id
+            }
+          });
+        },
+
+        planShare: function () {
+					var _this = this;
+					api.ajax({
+						url: baseUrl + 'share/index',
+						method: 'get',
+						headers: {
+							token: $api.getStorage('deviceToken')
+						},
+						data: {
+							values: {
+								uid: $api.getStorage('uid'),
+								id: _this.infoList.id,
+								type: 'dynamic'
+							},
+						}
+					}, function (ret, err) {
+						if (ret.status == 200) {
+							_this.shareTitle = ret.data.title;
+							_this.shareContent = ret.data.content;
+							_this.shareUrl = ret.data.url + '?channel=' + $api.getStorage('channel') + '&tuid=' + $api.getStorage('uid');
+							_this.shareImage = ret.data.image;
+							_this.shareImageQQ = ret.data.image;
+						}
+					})
+				},
+
+				openActionMenu: function (id) {
+					var _this = this;
+					_this.planShare();
+					dialogBox.actionMenu({
+						rect: {
+							h: 140
+						},
+						items: [{
+							text: '微信好友',
+							icon: 'widget://image/circular-WeChat.png'
+						}, {
+							text: '微信朋友圈',
+							icon: 'widget://image/circle-friend.png'
+						}],
+						styles: {
+							bg: '#FFF',
+							column: 2,
+							itemText: {
+								color: '#000',
+								size: 14,
+								marginT: 10
+							},
+							itemIcon: {
+								size: 60
+							}
+						},
+						tapClose: true
+					}, function (ret) {
+						var wx = api.require('wx');
+						var qq = api.require('QQPlus');
+						if (ret.index == 0) {
+							wx.shareWebpage({
+								scene: 'session',
+								title: _this.shareTitle,
+								description: _this.shareContent,
+								thumb: _this.shareImage,
+								contentUrl: _this.shareUrl
+							}, function (ret, err) {
+								_this.closdialg();
+								if (ret.status) {
+									api.toast({
+										msg: '分享成功'
+									});
+								} else {
+									api.toast({
+										msg: '分享失败'
+									});
+								}
+							});
+						}
+						if (ret.index == 1) {
+							wx.shareWebpage({
+								scene: 'timeline',
+								title: _this.shareTitle,
+								description: _this.shareContent,
+								thumb: _this.shareImage,
+								contentUrl: _this.shareUrl
+							}, function (ret, err) {
+								_this.closdialg();
+								if (ret.status) {
+									api.toast({
+										msg: '分享成功'
+									});
+								} else {
+									api.toast({
+										msg: '分享失败'
+									});
+								}
+							});
+						}
+						if (ret.index == 2) {
+							qq.shareNews({
+								type: 'QFriend',
+								url: _this.shareUrl,
+								title: _this.shareTitle,
+								description: _this.shareContent,
+								imgUrl: _this.shareImageQQ
+							}, function (ret, err) {
+								_this.closdialg();
+								if (ret.status) {
+									api.toast({
+										msg: '分享成功'
+									});
+								} else {
+									api.toast({
+										msg: '分享失败'
+									});
+								}
+							});
+						}
+						if (ret.index == 3) {
+							qq.shareNews({
+								type: 'QZone',
+								url: _this.shareUrl,
+								title: _this.shareTitle,
+								description: _this.shareContent,
+								imgUrl: _this.shareImageQQ
+							}, function (ret, err) {
+								_this.closdialg();
+								if (ret.status) {
+									api.toast({
+										msg: '分享成功'
+									});
+								} else {
+									api.toast({
+										msg: '分享失败'
+									});
+								}
+							});
+						}
+					});
+				},
+
+        closdialg: function () {
+					dialogBox.close({
+						dialogName: 'actionMenu'
+					});
+				},
+
+        getDialogBoxRecharge: function (txt) {
+          dialogBox.evaluation({
+            styles: {
+              bg: '#fff',
+              corner: 2,
+              w: 300,
+              title: {
+                marginT: 20,
+                size: 14,
+                h: 50,
+                color: '#000',
+                bold: true,
+                borderColor: '#eee',
+                borderWidth: 1
+              },
+              buttons: [{
+                w: 300,
+                h: 50,
+                color: '#0077ff',
+                size: 14,
+                borderColor: '#eee',
+                borderWidth: 1
+              }, {
+                w: 300,
+                h: 50,
+                color: '#0077ff',
+                size: 14,
+                borderColor: '#eee',
+                borderWidth: 1
+              }, {
+                w: 300,
+                h: 50,
+                color: '#000',
+                size: 14
+              }]
+            },
+            texts: {
+              title: txt,
+              buttons: [{
+                text: '去赚钱'
+              }, {
+                text: '去充值'
+              }, {
+                text: '取消'
+              }]
+            },
+            tapClose: true
+          }, function (ret, err) {
+            if (ret) {
+              if (ret.index == 0) {
+                dialogBox.close({
+                  dialogName: 'evaluation'
+                });
+                api.openWin({
+                  name: 'my_share',
+                  url: 'my_share.html',
+                  slidBackEnabled: false
+                });
+              }
+              if (ret.index == 1) {
+                dialogBox.close({
+                  dialogName: 'evaluation'
+                });
+                api.openWin({
+                  name: 'recharge',
+                  url: 'recharge.html',
+                  slidBackEnabled: false
+                });
+              }
+              if (ret.index == 2) {
+                dialogBox.close({
+                  dialogName: 'evaluation'
+                });
+              }
+            }
+          });
+        },
+      }
+    })
+  }
+</script>

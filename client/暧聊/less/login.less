@@ -1,0 +1,63 @@
+// out: ../css/login.css
+@import 'common';
+
+.form-wrap {
+  padding: 20px;
+  .form-item {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+    .iconfont {
+      line-height: 40px;
+      color: #555;
+    }
+    input {
+      height: 40px;
+      line-height: 40px;
+      border-radius: 3px;
+      text-indent: 10px;
+      font-size: 12px;
+    }
+  }
+  .btn-wrap{
+    .btn{
+      width: 100%;
+      height: 40px;
+      line-height: 40px;
+      background-color: #ccc;
+      color: #fff;
+      border-radius: 5px;
+    }
+  }
+}
+.btn-active{
+  width: 100%;
+  height: 40px;
+  line-height: 40px;
+  background-color: @main-color;
+  color: #fff;
+  border-radius: 5px;
+}
+.forget-wrap {
+  padding: 0 20px;
+  justify-content: space-between;
+  a {
+    color: @main-color;
+  }
+}
+
+.agreement-wrap {
+	display: flex;
+	justify-content: center;
+  align-items: center;
+  width: 100%;
+	margin-top: 100px;
+	font-size: 12px;
+  color: #333;
+  position: absolute;
+  left: 0;
+  bottom: 30px;
+	strong {
+		font-weight: normal;
+		color: @main-color;
+	}
+}

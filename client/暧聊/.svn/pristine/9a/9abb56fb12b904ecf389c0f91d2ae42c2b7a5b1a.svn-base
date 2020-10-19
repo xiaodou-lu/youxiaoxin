@@ -1,0 +1,134 @@
+// out: ../css/gift.css
+@import 'common';
+html,
+body {
+	font-size: 14px;
+	height: 100%;
+	width: 100%;
+	background: rgba(0, 0, 0, 0);
+	color: #fff
+}
+
+#app,
+.main,
+.top_back {
+	width: 100%;
+	height: 100%;
+}
+
+.gift_box {
+	width: 100%;
+	background: rgba(0, 0, 0, 0.8);
+	position: absolute;
+	bottom: 0;
+	left: 0;
+}
+
+.gift_back {
+	width: 100%;
+	height: 40px;
+	display: flex;
+	justify-content: flex-end;
+
+	span {
+		width: 80px;
+		height: 40px;
+		text-align: center;
+		line-height: 40px;
+	}
+}
+
+.swiper-container {
+	width: 100%;
+	padding-top: 2px;
+}
+
+.swiper-slide {
+	display: flex;
+	flex-wrap: wrap;
+
+	.gift-item {
+		position: relative;
+		width: 25%;
+		padding: 10px 0;
+		border: 1px solid transparent;
+		box-sizing: border-box;
+
+		&.gift-selected {
+			border-color: @main-color;
+		}
+
+		.gift-item-img {
+			width: 40px;
+			height: 40px;
+			display: block;
+			margin: auto;
+		}
+
+		p {
+			font-size: 10px;
+			text-align: center;
+			margin-top: 2px
+		}
+	}
+}
+
+.gift_bottom {
+	height: 50px;
+	display: flex;
+	width: 100%;
+
+	.bi {
+		flex: 1;
+		line-height: 50px;
+		height: 50px;
+		padding-left: 20px;
+
+		span {
+			padding-left: 10px;
+			color: @main-color;
+		}
+	}
+
+	.pay {
+		flex: 1;
+		line-height: 50px;
+		height: 50px;
+	}
+
+	.dian {
+		flex: 1;
+		height: 50px;
+
+		input {
+			float: right;
+			margin-top: 10px;
+			height: 30px;
+			width: 70px;
+			line-height: 30px;
+			background: @main-color;
+			border-bottom-left-radius: 20px;
+			border-top-left-radius: 20px;
+			outline: none;
+			color: #fff;
+		}
+	}
+}
+
+#gift-item-vip {
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+
+#gift-item-vip-img {
+	width: 25px;
+}
+.swiper-pagination {
+	position: static;
+	margin-top: -3px;
+	margin-bottom: 12px;
+}
+.swiper-pagination-bullet-active {
+	background: @main-color;
+}

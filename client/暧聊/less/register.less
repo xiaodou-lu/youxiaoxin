@@ -1,0 +1,174 @@
+// out: ../css/register.css
+@import 'common';
+
+.form-wrap {
+  padding: 20px;
+  .form-item {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+    .iconfont {
+      line-height: 40px;
+      color: #555;
+    }
+    input {
+      height: 40px;
+      line-height: 40px;
+      border-radius: 3px;
+      text-indent: 10px;
+      font-size: 12px;
+    }
+    .sendMessage-btn{
+      color: #fff;
+      background-color: @main-color;
+      border-radius: 5px;
+      width: 100px;
+      font-size: 12px;
+      &.disabled {
+        background-color: #ccc;
+      }
+    }
+    &.sex-wrap {
+      border: none;
+      justify-content: space-around;
+      .sex{
+        padding: 0 20px;
+        position: relative;
+        font-size: 12px;
+        border-radius: 50px;
+        background-color: #ccc;
+        height: 40px;
+        line-height: 40px;
+        color: #fff;
+        .iconfont{
+          font-size: 14px;
+          color: #fff;
+          margin-right: 3px;
+        }
+        input{
+          position: absolute;
+          left: 0;
+          top: 0;
+          visibility: hidden;
+        }
+        &.sex0.active {
+          background-color: #54b2ff;
+        }
+        &.sex1.active {
+          background-color: #ff74a0;
+        }
+      }
+    }
+  }
+  .btn-wrap{
+    button {
+      width: 100%;
+      height: 40px;
+      line-height: 40px;
+      color: #fff;
+      border-radius: 40px;
+      &.btn{
+        background-color: #ccc;
+      }
+      &.btn-active{
+        background-color: @main-color;
+      }
+    }
+  }
+}
+
+.box{
+  padding: 0 20px;
+  line-height: 30px;
+  .beizhu{
+    width: 100%;
+    color: @main-color;
+    text-align: center;
+  }
+}
+
+.forget-wrap {
+  padding: 0 20px;
+  justify-content: space-between;
+  a {
+    color: @main-color;
+  }
+}
+
+.agreement-wrap {
+  display: flex;
+	justify-content: center;
+  align-items: center;
+  width: 100%;
+	margin-top: 100px;
+	font-size: 12px;
+  color: #333;
+  position: absolute;
+  left: 0;
+  bottom: 30px;
+  strong {
+		font-weight: normal;
+		color: @main-color;
+	}
+  div {
+    text-align: center;
+    span{
+      width: 40px;
+      height: 40px;
+      line-height: 40px;
+      text-align: center;
+      border-radius: 20px;
+      background-color: @main-color;
+      color: #fff;
+    }
+  }
+}
+
+.avatar-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 50px 0;
+  .avatar {
+    width: 100px;
+    height: 100px;
+    position: relative;
+    border-radius: 100px;
+    overflow: hidden;
+    img {
+      display: block;
+      width: 100px;
+      height: 100px;
+    }
+    .tips {
+      width: 100%;
+      height: 30px;
+      background: rgba(0, 0, 0, 0.5);
+      text-align: center;
+      line-height: 30px;
+      font-size: 12px;
+      color: #fff;
+      position: absolute;
+      left: 0;
+      bottom: 0;
+    }
+  }
+}
+
+.FNImageClip-control {
+	position: fixed;
+	left: 0;
+	bottom: 0;
+	width: 100%;
+	height: 50px;
+	background-color: #000;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	span {
+		height: 100%;
+		line-height: 50px;
+		padding: 0 20px;
+		color: #fff;
+		font-size: 16px;
+	}
+}

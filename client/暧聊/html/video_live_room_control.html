@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+  <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+  <title>直播间</title>
+  <link rel="stylesheet" type="text/css" href="../css/api.css" />
+  <link rel="stylesheet" type="text/css" href="../css/swiper.min.css" />
+  <link rel="stylesheet" type="text/css" href="../css/video_live.css" />
+  <style>
+    html, body {
+      background: rgba(0, 0, 0, 0);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app" v-cloak>
+    <div class="swiper-container">
+      <div class="swiper-wrapper">
+        <div class="swiper-slide"></div>
+        <div class="swiper-slide">
+          <div class="wrap flex-wrap flex-vertical">
+            <div id="video-live-header" class="video-live-header">
+              <div class="user-wrap">
+                <div class="user-info" @click="openUserHome">
+                  <img class="user-avatar" :src="up_avatar" alt="">
+                  <div class="user-text">
+                    <div class="user-name">{{up_name}}</div>
+                    <div class="user-city">{{up_city}}</div>
+                  </div>
+                </div>
+                <div v-if="character == 'audience'" class="follow" @click="follow">{{is_follow == 0 ? '关注' : '已关注'}}</div>
+              </div>
+              <div class="member-wrap">
+                <div class="member-list">
+                  <img v-for="(item, index) in member_list" :key="index" v-if="item.avatar != ''" :src="item.avatar + '?imageView2/1/w/100/h/100'" alt="">
+                </div>
+              </div>
+              <div class="close-wrap" @click="closeRoom">
+                <i class="iconfont icon-close"></i>
+              </div>
+            </div>
+            <div class="room-info">
+              <div class="room-count">{{room_count}}人在线</div>
+              <div class="room-id">房间号：{{room_id}}</div>
+            </div>
+            <div class="room-info">
+              <div class="gift-count">
+                <i class="icon icon-gift1"></i>
+                <span>{{gitf_count}}</span>
+              </div>
+            </div>
+            <div class="video-live-room flex-con">
+              <div id="chat-wrap" class="chat-wrap">
+                <div class="chat-intro">平台正对直播间内容进行24小时巡查，任何传播违法、违规、低俗、色情、暴力等不良信息将会被封停账号；请勿轻信他人，谨防上当受骗。</div>
+                <div id="chat-list" class="chat-list">
+                  <div class="chat-item" v-for="(item, index) in chatList" :key="index">
+                    <div :class="[item.type == 'sys' ? 'sys-text' : '', item.type == 'syserro' ? 'syserro-text' : '', item.type == 'user' ? 'user-text' : '', 'chat-content']">
+                      <span v-if="item.type == 'user'" class="name">{{item.sender}}：</span>
+                      <span class="content">{{item.content}}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-wrap">
+                <div class="input-wrap">
+                  <input type="text" v-model="message" placeholder="对主播说点什么……">
+                  <button type="button" @click="sendMessage">发送</button>
+                </div>
+                <div class="fMenu-wrap">
+                  <div v-if="character == 'audience'" @click="openGiftBox" class="fMenu-item fMenu-gift">
+                    <i class="iconfont icon-gift"></i>
+                  </div>
+                  <div v-if="character == 'anchor'" @click="setFilter" class="fMenu-item fMenu-filter">
+                    <i class="icon icon-meiyan"></i>
+                  </div>
+                  <div v-if="character == 'anchor'" @click="setCamera" class="fMenu-item fMenu-camera">
+                    <i class="icon icon-camera"></i>
+                  </div>
+                  <div v-if="character == 'anchor'" @click="setGold" class="fMenu-item fMenu-gold">
+                    <i class="icon icon-gold"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-if="dialog_live" class="dialog-wrap">
+              <div class="user-info">
+                <div class="user-avatar">
+                  <img :src="up_avatar" alt="">
+                  <div @click="follow" class="follow">{{is_follow == 0 ? '关注' : '已关注'}}</div>
+                </div>
+                <div class="user-name">{{up_name}}</div>
+                <div class="user-city">{{up_city}}</div>
+              </div>
+              <div class="dialog">
+                <div class="dialog-content">房主还未上线</div>
+                <button @click="goback" type="button">去看看其他直播间</button>
+              </div>
+            </div>
+            <div v-if="dialog_pay" class="dialog-wrap">
+              <div class="pay-info">
+                <div class="title">该直播按场收费</div>
+                <div v-if="time > 0" class="ctime">预览倒计时<span>{{time}}</span>秒</div>
+              </div>
+              <div class="pay-wrap">
+                <div class="title">付费直播</div>
+                <div class="tips">主播开启了付费直播，<span>{{gold}}</span>港币/场，是否进入？</div>
+                <div class="btn-wrap">
+                  <button @click="cancel" class="btn-cancel">退出</button>
+                  <button @click="pay" class="btn-enter">确定</button>
+                </div>
+              </div>
+            </div>
+            <div v-if="give_gift_prompt" class="give-gift-prompt">
+              <img :src="u_avatar" alt="" class="user-avatar">
+              <div class="user-info">
+                <div class="user-name">{{u_name}}</div>
+                <div class="info">送 {{up_name}}</div>
+              </div>
+              <img class="give-gift-img" :src="give_gift_img" alt="">
+              <div class="give-gift-count">x {{give_gift_count}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../script/vue.js"></script>
+<script type="text/javascript" src="../script/swiper.min.js"></script>
+<script type="text/javascript" src="../script/common.js"></script>
+<script type="text/javascript">
+  var app, core, chat, mySwiper;
+  apiready = function () {
+    $api.fixStatusBar($api.dom('#video-live-header'));
+    core = api.require('gotyeLiveCore');
+    chat = api.require('gotyeLiveChat');
+    if (api.pageParam.character == 'anchor') {
+      var publisher = api.require('gotyeLivePublisher');
+    }
+    if (api.pageParam.character == 'audience') {
+      if (api.pageParam.rtmp == '') {
+        var player = api.require('gotyeLivePlayer');
+      }
+    }
+    app = new Vue({
+      el: '#app',
+      data: {
+        u_avatar: '',
+        u_name: '',
+        dialog_live: false,
+        dialog_pay: false,
+        character: api.pageParam.character,
+        status: api.pageParam.status,
+        gold: api.pageParam.gold,
+        rtmp: api.pageParam.rtmp,
+        is_pay: api.pageParam.is_pay,
+        is_follow: api.pageParam.is_follow,
+        member_list: api.pageParam.member_list,
+        gitf_count: api.pageParam.gitf_count,
+        up_avatar: api.pageParam.member.avatar,
+        up_name: api.pageParam.member.name,
+        up_city: api.pageParam.member.city,
+        session: {
+          roomId: api.pageParam.roomId,
+          password: api.pageParam.roomPwd,
+          nickname: $api.getStorage('uname'),
+        },
+        chatList: [],
+        message: '',
+        room_count: 0,
+        room_id: api.pageParam.roomId,
+        give_gift_prompt: false,
+        give_gift_img: '',
+        give_gift_count: 1,
+        time: 30,
+      },
+      created: function () {
+        var _this = this;
+        api.addEventListener({
+          name: 'closeRoom'
+        }, function (ret, err) {
+          _this.closeRoom();
+        });
+        api.addEventListener({
+          name: 'offline'
+        }, function (ret, err) {
+          _this.insertChartContent('sys', '系统', '网络异常！');
+        });
+        api.addEventListener({
+          name: 'online'
+        }, function (ret, err) {
+          _this.insertChartContent('sys', '系统', '网络恢复！');
+        });
+        if (api.pageParam.character == 'anchor') {
+          _this.room_count = !!api.pageParam.room_count ? api.pageParam.room_count : 0;
+          publisher.init({
+            session: _this.session
+          });
+          publisher.startPreview({
+            preview: 'video_live_room_frame',
+            position: 'front',
+            rect: {
+              x: 0,
+              y: 0,
+              w: api.frameWidth,
+              h: api.frameHeight
+            }
+          }, function (ret, err) {
+            if (ret) {
+              publisher.login({
+                force: true
+              }, function (ret, err) {
+                if (ret) {
+                  _this.insertChartContent('sys', '系统', '连接服务器成功');
+                  publisher.publish();
+                } else {
+                  _this.insertChartContent('syserro', '系统', '登录失败');
+                }
+              });
+            } else {
+              _this.insertChartContent('syserro', '系统', '打开设备摄像头失败');
+            }
+          });
+          publisher.addEventListener({
+            name: 'connected'
+          }, function (ret, err) {
+            _this.insertChartContent('sys', '系统', '连接服务器成功');
+          });
+
+          publisher.addEventListener({
+            name: 'disconnected'
+          }, function (ret, err) {
+            _this.insertChartContent('sys', '系统', '服务器断开连接');
+          });
+
+          publisher.addEventListener({
+            name: 'reconnecting'
+          }, function () {
+            _this.insertChartContent('sys', '系统', '服务器重新连接中...');
+          });
+
+          publisher.addEventListener({
+            name: 'error'
+          }, function (ret, err) {
+            _this.insertChartContent('syserro', '系统', ret.description);
+          });
+
+          publisher.addEventListener({
+            name: 'forceLogout'
+          }, function () {
+            api.alert({
+              msg: '您的账号在另外的设备登录，当前设备需强制踢下线',
+              buttons: ['知道了']
+            }, function (ret, err) {
+              if (ret.buttonIndex == 1) {
+                _this.closeRoom();
+              }
+            });
+          });
+        }
+        if (api.pageParam.character == 'audience') {
+          if (_this.status == '2') {
+            _this.dialog_live = true;
+            return false;
+          }
+          if (parseInt(_this.gold) > 0 && _this.is_pay == 1) {
+            _this.dialog_pay = true;
+            _this.ctimer(_this.time);
+          }
+          _this.room_count = api.pageParam.room_count;
+          if (api.pageParam.rtmp == '') {
+            player.init({
+              session: _this.session
+            });
+            player.play({
+              playView: 'video_live_room_frame',
+              rect: {
+                x: 0,
+                y: 0,
+                w: api.frameWidth,
+                h: api.frameHeight
+              }
+            });
+            
+            player.setDisplayMode({
+              mode: 'aspectFill'
+            });
+
+            //根据实际业务需求加入监听事件
+            player.addEventListener({
+              name: 'connected'
+            }, function (ret, err) {
+              _this.insertChartContent('sys', '系统', '连接服务器成功');
+            });
+
+            player.addEventListener({
+              name: 'disconnected'
+            }, function (ret, err) {
+              _this.insertChartContent('sys', '系统', '服务器断开连接');
+            });
+
+            player.addEventListener({
+              name: 'error'
+            }, function (ret, err) {
+              if (ret.description.indexOf('直播还未开始') != -1) {
+                _this.dialog_live = true;
+                api.ajax({
+                  url: baseUrl + 'live/status',
+                  method: 'post',
+                  headers: {
+                    token: $api.getStorage('deviceToken')
+                  },
+                  data: {
+                    values: {
+                      uid: $api.getStorage('uid'),
+                      id: api.pageParam.id
+                    },
+                  }
+                }, function (ret, err) {
+                  // setTimeout(function () {
+                  //   var tempExtra = {
+                  //     id: $api.getStorage('uid'),
+                  //     name: $api.getStorage('uname'),
+                  //     avatar: $api.getStorage('uavatar'),
+                  //   }
+                  //   chat.sendNotify({
+                  //     notify: 'quit',
+                  //     extra: JSON.stringify(tempExtra)
+                  //   }, function(ret, err) {});
+                  //   player.stop();
+                  //   chat.logout();
+                  //   core.destroyRoomSession(_this.session);
+                  //   api.sendEvent({
+                  //     name: 'refresh_video_live_list',
+                  //   });
+                  //   api.closeToWin({
+                  //     name: 'main'
+                  //   });
+                  // }, 1000);
+                });
+              }
+              _this.insertChartContent('syserro', '系统', ret.description);
+            });
+
+            player.addEventListener({
+              name: 'liveStart'
+            }, function (ret, err) {
+              _this.insertChartContent('sys', '系统', '房主上线了');
+            });
+
+            player.addEventListener({
+              name: 'liveStop'
+            }, function (ret, err) {
+              _this.insertChartContent('sys', '系统', '房主下线了');
+            });
+          } else {
+            var videoPlayer = api.require('videoPlayer');
+            videoPlayer.open({
+              rect: {
+                x: 0,
+                y: 0,
+                w: api.winWidth,
+                h: api.winHeight  
+              },
+              bg: '#000',
+              path: api.pageParam.rtmp,
+              scalingMode: 'scaleToFill',
+              fixedOn: 'video_live_room_frame'
+            }, function (ret, err) {});
+            videoPlayer.addEventListener({
+              name: 'play'
+            }, function(ret, err) {
+              if (ret && ret.eventType == 'complete') {
+                videoPlayer.start();
+              }
+            });
+          }
+        }
+        //初始化聊天信息
+        _this.insertChartContent('sys', '系统', '正在连接聊天服务器...');
+        chat.init(_this.session);
+        chat.login(function (ret, err) {
+          if (ret) {
+            // localId = ret.account;
+            _this.insertChartContent('sys', '系统', '连接聊天服务器成功');
+            var tempExtra = {
+              id: $api.getStorage('uid'),
+              name: $api.getStorage('uname'),
+              avatar: $api.getStorage('uavatar'),
+            }
+            chat.sendNotify({
+              notify: 'access',
+              extra: JSON.stringify(tempExtra)
+            }, function(ret, err) {});
+            _this.initUserList();
+            //定时刷新用户列表，目前设置是1分钟刷新一次
+            setInterval(function () {
+              _this.initUserList();
+            }, 6000)
+          } else {
+            _this.insertChartContent('syserro', '系统', '连接聊天服务器失败，请退出直播间重新加入');
+          }
+        });
+
+        //监听收到的消息
+        chat.addEventListener({
+          name: 'receiveMsg'
+        }, function (ret, err) {
+          if (ret) {
+            if (ret.extra == 'gift') {
+              var giftExtra = JSON.parse(ret.text);
+              if (!!giftExtra.GiftSvga) {
+                api.openFrame({
+                  name: 'svga',
+                  url: 'svga.html',
+                  rect: {
+                    x: 0,
+                    y: 0,
+                    w: api.winWidth,
+                    h: api.winHeight
+                  },
+                  bounces: false,
+                  pageParam: giftExtra
+                });
+              } else {
+                _this.u_avatar = giftExtra.fromAvatar;
+                _this.u_name = giftExtra.fromName;
+                if (_this.give_gift_img == giftExtra.GiftImg) {
+                  _this.give_gift_count++;
+                }
+                _this.give_gift_img = giftExtra.GiftImg;
+                _this.give_gift_prompt = true;
+                setTimeout( function () {
+                  _this.give_gift_prompt = false;
+                  _this.give_gift_img = '';
+                  _this.give_gift_count = 1;
+                }, 5000);
+              }
+            } else if (ret.extra == 'sys' || ret.extra == 'syserro' || ret.extra == 'user'){
+              _this.insertChartContent(ret.extra, ret.sendName, ret.text);
+            } else if (ret.type == 3){
+              if (ret.text == 'access') {
+                var tempExtra = JSON.parse(ret.extra);
+                _this.insertChartContent('sys', ret.sendName, tempExtra.name + '来了');
+                _this.member_list.unshift({
+                  avatar: tempExtra.avatar
+                })
+                _this.room_count = _this.room_count + 1;
+              }
+              if (ret.text == 'quit') {
+                var tempExtra = JSON.parse(ret.extra);
+                _this.insertChartContent('sys', ret.sendName, tempExtra.name + '离开了直播间');
+                var index = -1;
+                for (var i = 0; i < _this.member_list.length; i++) {
+                  if (_this.member_list[i].avatar == tempExtra.avatar) {
+                    _this.member_list[i].avatar = ''
+                  }
+                }
+                _this.room_count = _this.room_count - 1;
+              }
+              if (ret.text == 'follow') {
+                var tempExtra = JSON.parse(ret.extra);
+                _this.insertChartContent('sys', ret.sendName, tempExtra.name + '关注了主播');
+              }
+              if (ret.text == 'setGold') {
+                var tempExtra = JSON.parse(ret.extra);
+                _this.gold = tempExtra.gold;
+                if (_this.gold == '0') {
+                  _this.dialog_pay = false;
+                  _this.time = 30;
+                } else {
+                  _this.dialog_pay = true;
+                  _this.ctimer(_this.time);
+                }
+              }
+            }
+          }
+        });
+
+        chat.addEventListener({
+          name: 'forceLogout'
+        }, function (ret, err) {
+          api.alert({
+            msg: '您的账号在另外的设备登录，当前设备需强制踢下线',
+            buttons: ['知道了']
+          }, function (ret, err) {
+            if (ret.buttonIndex == 1) {
+              _this.closeRoom();
+            }
+          });
+        });
+        api.addEventListener({
+          name: 'live_give_gift_message'
+        }, function (ret, err) {
+          chat.sendText({
+            text: JSON.stringify(ret.value),
+            extra: 'gift'
+          }, function (ret1, err1) {
+            if (err1) {
+              alert(JSON.stringify(err1));
+            } else {
+              if (!!ret.value.GiftSvga) {
+                api.openFrame({
+                  name: 'svga',
+                  url: 'svga.html',
+                  rect: {
+                    x: 0,
+                    y: 0,
+                    w: api.winWidth,
+                    h: api.winHeight
+                  },
+                  bounces: false,
+                  pageParam: ret.value
+                });
+              } else {
+                _this.u_avatar = $api.getStorage('uavatar');
+                _this.u_name = $api.getStorage('uname');
+                if (_this.give_gift_img == ret.value.GiftImg) {
+                  _this.give_gift_count++;
+                }
+                _this.give_gift_img = ret.value.GiftImg;
+                _this.give_gift_prompt = true;
+                setTimeout( function () {
+                  _this.give_gift_prompt = false;
+                  _this.give_gift_img = '';
+                  _this.give_gift_count = 1;
+                }, 5000);
+              }
+            }
+          });
+        });
+      },
+      mounted: function () {
+        var _this = this;
+        setTimeout( function () {
+          mySwiper = new Swiper('.swiper-container', {
+            autoplay: false,
+            resistanceRatio: 0,
+            initialSlide: 1,
+          })
+        }, 300);
+      },
+      methods: {
+        goback: function () {
+          api.sendEvent({
+            name: 'refresh_video_live_list',
+          });
+          api.closeWin();
+        },
+
+        closeRoom: function () {
+          var _this = this;
+          api.confirm({
+            title: '提示',
+            msg: '确定要退出直播间？',
+            buttons: ['确定', '取消']
+          }, function (ret, err) {
+            if (ret.buttonIndex == 1) {
+              if (api.pageParam.character == 'anchor') {
+                api.ajax({
+                  url: baseUrl + 'live/close',
+                  method: 'get',
+                  headers: {
+                    token: $api.getStorage('deviceToken')
+                  },
+                  data: {
+                    values: {
+                      uid: $api.getStorage('uid'),
+                      id: api.pageParam.id
+                    },
+                  }
+                }, function (ret, err) {
+                  if (ret) {
+                    api.toast({
+                      msg: ret.message[0]
+                    });
+                    if (ret.status == 200) {
+                      setTimeout(function () {
+                        var tempExtra = {
+                          id: $api.getStorage('uid'),
+                          name: $api.getStorage('uname'),
+                          avatar: $api.getStorage('uavatar'),
+                        }
+                        chat.sendNotify({
+                          notify: 'quit',
+                          extra: JSON.stringify(tempExtra)
+                        }, function(ret, err) {});
+                        publisher.logout();
+                        publisher.stop();
+                        core.destroyRoomSession(_this.session);
+                        chat.logout();
+                        api.sendEvent({
+                          name: 'refresh_video_live_list',
+                        });
+                        api.closeToWin({
+                          name: 'main',
+                        });
+                      }, 1000);
+                    }
+                  }
+                  if (err) {
+                    api.toast({
+                      msg: '网络错误，请稍后再试'
+                    });
+                  }
+                });
+              }
+              if (api.pageParam.character == 'audience') {
+                api.ajax({
+                  url: baseUrl + 'live/leave',
+                  method: 'get',
+                  headers: {
+                    token: $api.getStorage('deviceToken')
+                  },
+                  data: {
+                    values: {
+                      uid: $api.getStorage('uid'),
+                      id: api.pageParam.id
+                    },
+                  }
+                }, function (ret, err) {
+                  if (ret) {
+                    api.toast({
+                      msg: ret.message[0]
+                    });
+                    if (ret.status == 200) {
+                      setTimeout(function () {
+                        var tempExtra = {
+                          id: $api.getStorage('uid'),
+                          name: $api.getStorage('uname'),
+                          avatar: $api.getStorage('uavatar'),
+                        }
+                        chat.sendNotify({
+                          notify: 'quit',
+                          extra: JSON.stringify(tempExtra)
+                        }, function(ret, err) {});
+                        if (api.pageParam.rtmp == '') {
+                          player.stop();
+                        } else {
+                          var videoPlayer = api.require('videoPlayer');
+                          videoPlayer.close();
+                        }
+                        chat.logout();
+                        core.destroyRoomSession(_this.session);
+                        api.sendEvent({
+                          name: 'refresh_video_live_list',
+                        });
+                        api.closeToWin({
+                          name: 'main'
+                        });
+                      }, 1000);
+                    }
+                  }
+                  if (err) {
+                    api.toast({
+                      msg: '网络错误，请稍后再试'
+                    });
+                  }
+                });
+              }
+            }
+          });
+        },
+
+        pay: function () {
+          var _this = this;
+          api.ajax({
+            url: baseUrl + 'live/pay',
+            method: 'post',
+            headers: {
+              token: $api.getStorage('deviceToken')
+            },
+            data: {
+              values: {
+                uid: $api.getStorage('uid'),
+                id: api.pageParam.id
+              },
+            }
+          }, function (ret, err) {
+            api.toast({
+              msg: ret.message[0],
+              duration: 2000,
+              location: 'bottom'
+            });
+            if (ret.status == 200) {
+              _this.dialog_pay = false;
+              _this.time = 30;
+            }
+            if (ret.status == 400) {
+              api.confirm({
+                title: '提示',
+                msg: '您的余额不足，请及时充值',
+                buttons: ['确定', '取消']
+              }, function (ret, err) {
+                if (ret.buttonIndex == 1) {
+                  api.openWin({
+                    name: 'recharge',
+                    url: 'recharge.html',
+                    slidBackEnabled: false
+                  });
+                }
+              })
+            }
+          })
+        },
+
+        ctimer: function (time) {
+          var t = time;
+          var _this = this;
+          if (t > 0) {
+            t--;
+            _this.time = t;
+            setTimeout(function () {
+              _this.ctimer(t);
+            }, 1000);
+          } else {
+            _this.time = 30;
+            _this.cancel();
+          }
+        },
+
+        cancel: function () {
+          var _this = this;
+          if (api.pageParam.character == 'anchor') {
+            api.ajax({
+              url: baseUrl + 'live/close',
+              method: 'get',
+              headers: {
+                token: $api.getStorage('deviceToken')
+              },
+              data: {
+                values: {
+                  uid: $api.getStorage('uid'),
+                  id: api.pageParam.id
+                },
+              }
+            }, function (ret, err) {
+              if (ret) {
+                api.toast({
+                  msg: ret.message[0]
+                });
+                if (ret.status == 200) {
+                  setTimeout(function () {
+                    var tempExtra = {
+                      id: $api.getStorage('uid'),
+                      name: $api.getStorage('uname'),
+                      avatar: $api.getStorage('uavatar'),
+                    }
+                    chat.sendNotify({
+                      notify: 'quit',
+                      extra: JSON.stringify(tempExtra)
+                    }, function(ret, err) {});
+                    publisher.logout();
+                    publisher.stop();
+                    core.destroyRoomSession(_this.session);
+                    chat.logout();
+                    api.sendEvent({
+                      name: 'refresh_video_live_list',
+                    });
+                    api.closeToWin({
+                      name: 'main',
+                    });
+                  }, 1000);
+                }
+              }
+              if (err) {
+                api.toast({
+                  msg: '网络错误，请稍后再试'
+                });
+              }
+            });
+          }
+          if (api.pageParam.character == 'audience') {
+            api.ajax({
+              url: baseUrl + 'live/leave',
+              method: 'get',
+              headers: {
+                token: $api.getStorage('deviceToken')
+              },
+              data: {
+                values: {
+                  uid: $api.getStorage('uid'),
+                  id: api.pageParam.id
+                },
+              }
+            }, function (ret, err) {
+              if (ret) {
+                api.toast({
+                  msg: ret.message[0]
+                });
+                if (ret.status == 200) {
+                  setTimeout(function () {
+                    var tempExtra = {
+                      id: $api.getStorage('uid'),
+                      name: $api.getStorage('uname'),
+                      avatar: $api.getStorage('uavatar'),
+                    }
+                    chat.sendNotify({
+                      notify: 'quit',
+                      extra: JSON.stringify(tempExtra)
+                    }, function(ret, err) {});
+                    if (api.pageParam.rtmp == '') {
+                      player.stop();
+                    } else {
+                      var videoPlayer = api.require('videoPlayer');
+                      videoPlayer.close();
+                    }
+                    chat.logout();
+                    core.destroyRoomSession(_this.session);
+                    api.sendEvent({
+                      name: 'refresh_video_live_list',
+                    });
+                    api.closeToWin({
+                      name: 'main'
+                    });
+                  }, 1000);
+                }
+              }
+              if (err) {
+                api.toast({
+                  msg: '网络错误，请稍后再试'
+                });
+              }
+            });
+          }
+        },
+
+        openUserHome: function () {
+          api.openWin({
+            name: 'user_home',
+            url: 'user_home.html',
+            slidBackEnabled: false,
+            pageParam: {
+              member_id: api.pageParam.member.member_id
+            }
+          });
+        },
+
+        follow: function () {
+          var _this = this;
+          api.ajax({
+            url: baseUrl + 'user/follow',
+            method: 'get',
+            headers: {
+              token: $api.getStorage('deviceToken')
+            },
+            data: {
+              values: {
+                uid: $api.getStorage('uid'),
+                to_uid: api.pageParam.member.member_id
+              },
+            }
+          }, function (ret, err) {
+            api.toast({
+              msg: ret.message[0],
+              duration: 2000,
+              location: 'bottom'
+            });
+            if (ret.status == 200) {
+              _this.is_follow = 1;
+              var tempExtra = {
+                id: $api.getStorage('uid'),
+                name: $api.getStorage('uname'),
+                avatar: $api.getStorage('uavatar'),
+              }
+              chat.sendNotify({
+                notify: 'follow',
+                extra: JSON.stringify(tempExtra)
+              }, function(ret, err) {});
+            }
+            if (ret.status == 201) {
+              _this.is_follow = 0;
+            }
+          })
+        },
+
+        initUserList: function () {
+          var _this = this;
+          // chat.getRoomMemberCount(function (ret, err) {
+          //   if (ret) {
+          //     _this.room_count = _this.room_count + ret.count;
+          //   }
+          // });
+          // chat.queryUserList({
+          //   index: 1,
+          //   total: 20
+          // }, function (ret, err) {
+          //   if (ret) {
+          //     var ht_user =
+          //       '<div class="viewer-list-item aui-ellipsis-1 aui-padded-l-15"><img class="crown" src="../image/publisher/crown.png" />主播</div>';
+          //     for (var i = 0; i < ret.entities.length; i++) {
+          //       ht_user +=
+          //         '<div class="viewer-list-item aui-ellipsis-1" data-account="' + ret.entities[i].account +
+          //         '" tapmode onclick="onUserClick(this);event.cancelBubble=true;">' + ret.entities[i].nickname +
+          //         '</div>';
+          //     }
+          //     $('#viewerList').html(ht_user);
+          //   } else {
+          //     alert(JSON.stringify(err));
+          //   }
+          // });
+        },
+
+        insertChartContent: function (type, sender, content) {
+          var _this = this;
+          _this.chatList.push({
+            type: type,
+            sender: sender,
+            content: content
+          })
+          setTimeout(function () {
+            _this.msgScrollToBottom();
+          }, 500);
+        },
+
+        // 滚动到底部
+        msgScrollToBottom: function () {
+          var ele = $api.dom('#chat-wrap');
+          var ele_content = $api.dom('#chat-list');
+          ele.scrollTop = ele_content.scrollHeight;
+        },
+
+        sendMessage: function () {
+          var _this = this;
+          if (_this.message == '') {
+            api.toast({
+              msg: '消息不能为空~',
+              duration: 2000,
+              location: 'bottom'
+            });
+            return false;
+          }
+          chat.sendText({
+            text: _this.message,
+            extra: 'user'
+          }, function (ret, err) {
+            if (err) {
+              alert(JSON.stringify(err));
+            } else {
+              _this.chatList.push({
+                type: 'user',
+                sender: $api.getStorage('uname'),
+                content: _this.message
+              })
+              _this.message = '';
+              setTimeout(function () {
+                _this.msgScrollToBottom();
+              }, 500);
+            }
+          });
+        },
+
+        openGiftBox: function () {
+          var _this = this;
+          api.openFrame({
+            name: 'gift',
+            url: 'gift.html',
+            rect: {
+              x: 0,
+              y: 0,
+              w: api.winWidth,
+              h: api.winHeight
+            },
+            pageParam: {
+              type: 'live',
+              to_uid: api.pageParam.member.member_id,
+              to_uname: api.pageParam.member.name,
+              to_uavatar: api.pageParam.member.avatar
+            }
+          });
+        },
+
+        setFilter: function () {
+          publisher.getFilter(function (ret) {
+            if (ret && ret.filter == 'normal') {
+              publisher.setFilter({
+                filter: 'smoothSkin'
+              })
+              api.toast({
+                msg: '一键美颜',
+                duration: 2000,
+                location: 'bottom'
+              });
+            }
+            if (ret && ret.filter == 'smoothSkin') {
+              publisher.setFilter({
+                filter: 'normal'
+              })
+              api.toast({
+                msg: '取消美颜',
+                duration: 2000,
+                location: 'bottom'
+              });
+            }
+          });
+        },
+
+        setCamera: function () {
+          publisher.switchCamera();
+          api.toast({
+            msg: '切换摄像头',
+            duration: 2000,
+            location: 'bottom'
+          });
+        },
+
+        setGold: function () {
+          var _this = this;
+          api.prompt({
+            title: '设置直播间收费',
+            msg: '设置0表示免费，设置10表示10港币/场',
+            text: '',
+            buttons: ['确定', '取消']
+          }, function(ret, err) {
+            if (ret.buttonIndex == 1) {
+              api.ajax({
+                url: baseUrl + 'live/trans',
+                method: 'post',
+                headers: {
+                  token: $api.getStorage('deviceToken')
+                },
+                data: {
+                  values: {
+                    uid: $api.getStorage('uid'),
+                    id: api.pageParam.id,
+                    gold: ret.text
+                  },
+                }
+              }, function (ret1, err1) {
+                api.toast({
+                  msg: ret1.message[0],
+                  duration: 2000,
+                  location: 'bottom'
+                });
+                if (ret1.status == 200) {
+                  var tempExtra = {
+                    gold: ret.text,
+                  }
+                  chat.sendNotify({
+                    notify: 'setGold',
+                    extra: JSON.stringify(tempExtra)
+                  }, function(ret, err) {});
+                }
+              })
+            }
+          });
+        },
+
+      },
+    })
+  }
+</script>
