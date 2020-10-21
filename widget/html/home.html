@@ -224,6 +224,7 @@
           //   title: '',
           //   text: ''
           // });
+          console.log($api.getStorage('deviceToken'),'token');
           api.ajax({
             url: baseUrl + 'home/index',
             method: 'get',
@@ -238,6 +239,8 @@
               },
             }
           }, function (ret, err) {
+
+            console.log(ret, err, $api.getStorage('deviceToken'),'首页');
             api.refreshHeaderLoadDone();
             // api.hideProgress();
             if (ret.status == 200) {

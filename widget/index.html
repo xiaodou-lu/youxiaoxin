@@ -295,9 +295,10 @@
 							},
 						}
 					}, function (ret, err) {
+					   console.log(ret,"index页面的登录");
 						if (ret && ret.status == 200) {
 							// 存储token
-							$api.setStorage('deviceToken', ret.data.token);
+							$api.setStorage('deviceToken', ret.data.remember_token);
 						}
 
 						if (err) {
@@ -379,9 +380,12 @@
 								},
 							}
 						}, function (ret, err) {
+							console.log(JSON.stringify(ret))
+							console.log(JSON.stringify(err))
 							api.hideProgress();
 							if (ret) {
-								console.log(JSON.stringify(ret))
+								// $api.setStorage('deviceToken', ret.data.token);
+
 								api.toast({
 									msg: ret.message[0]
 								});
@@ -393,7 +397,7 @@
 									$api.setStorage('uname', ret.data.name);
 									$api.setStorage('uavatar', ret.data.avatar);
 									$api.setStorage('umobile', ret.data.email);
-									$api.setStorage('token', token);
+									$api.setStorage('deviceToken', ret.data.remember_token);
 									api.openWin({
 										name: 'video',
 										url: 'html/video.html',
@@ -405,7 +409,7 @@
 							if (err) {
 									console.log(JSON.stringify(err))
 								api.toast({
-									msg: '网络错误，请稍后再试'
+									msg: '网络错误，请稍后再试1'
 								});
 							}
 						});

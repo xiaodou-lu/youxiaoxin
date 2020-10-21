@@ -66,7 +66,7 @@
         password: '',
         isDisabled: true,
       },
-      created: function () {
+ created: function () {
         var _this = this;
         if (!!$api.getStorage('uid')) {
           api.openWin({
@@ -88,7 +88,7 @@
             this.isDisabled = false;
           }
         },
-        
+
         goback: function () {
           api.closeWin();
         },
@@ -147,6 +147,8 @@
           }, function (ret, err) {
             api.hideProgress();
             if (ret) {
+              // $api.setStorage('deviceToken', ret.data.token);
+              console.log(JSON.stringify(ret))
               api.toast({
                 msg: ret.message[0]
               });
@@ -156,7 +158,8 @@
                 $api.setStorage('uname', ret.data.name);
                 $api.setStorage('uavatar', ret.data.avatar);
                 $api.setStorage('umobile', ret.data.email);
-                $api.setStorage('token', token);
+                // $api.setStorage('token', token);
+              	$api.setStorage('deviceToken', ret.data.remember_token);
                 api.openWin({
                   name: 'main',
                   url: 'main.html',
@@ -204,7 +207,7 @@
 						}
 					}, function (ret, err) {
 						if (ret && ret.status == 200) {
-							$api.setStorage('deviceToken', ret.data.token);
+							$api.setStorage('deviceToken', ret.data.remember_token);
 						}
 						if (err) {
 							api.toast({

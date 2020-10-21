@@ -345,6 +345,8 @@
           }, function (ret, err) {
             api.hideProgress();
             if (ret) {
+               console.log(JSON.stringify(ret),'注册信息')
+               $api.setStorage('deviceToken', ret.data.remember_token);
               api.toast({
                 msg: ret.message[0]
               });

@@ -95,6 +95,7 @@
                     //   title: '',
                     //   text: ''
                     // });
+                  console.log( $api.getStorage('deviceToken'));
                     api.ajax({
                         url: baseUrl + 'video/index',
                         method: 'get',
@@ -109,6 +110,8 @@
                             },
                         }
                     }, function(ret, err) {
+                        console.log(JSON.stringify(ret));
+                        console.log(JSON.stringify(err));
                         api.refreshHeaderLoadDone();
                         // api.hideProgress();
                         if (ret.status == 200) {
