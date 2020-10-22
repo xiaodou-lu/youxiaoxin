@@ -49,16 +49,17 @@
  <intent-filter>
    <action name="android.intent.action.VIEW" />
    <category name="android.intent.category.DEFAULT" />
-   <data host="com.n1015848021.jwp" path="/conversationlist" scheme="rong" />
+   <data host="com.xiaomiyou.copy" path="/conversationlist" scheme="rong" />
  </intent-filter>
  <intent-filter>
    <action name="android.intent.action.VIEW" />
    <category name="android.intent.category.DEFAULT" />
-   <data host="com.n1015848021.jwp" pathPrefix="/push_message" scheme="rong" />
+   <data host="com.xiaomiyou.copy" pathPrefix="/push_message" scheme="rong" />
  </intent-filter>
  <feature name="rongCloudIM">
    <param name="appKey" value="vnroth0kvlr2o" />
  </feature>
+
  <feature name="mapleRTC">
    <param name="appId" value="b3b17f9b5f0a8a16" />
  </feature>
