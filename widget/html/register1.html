@@ -344,12 +344,13 @@
             }
           }, function (ret, err) {
             api.hideProgress();
+            console.log(JSON.stringify(ret),'注册信息');
+            console.log(JSON.stringify(err),'注册信息');
             if (ret) {
-               console.log(JSON.stringify(ret),'注册信息')
                $api.setStorage('deviceToken', ret.data.remember_token);
-              api.toast({
+               api.toast({
                 msg: ret.message[0]
-              });
+               });
               if (ret.status == 200) {
                 var token = JSON.parse(ret.data.token).code == 200 ? JSON.parse(ret.data.token).token : '';
                 $api.setStorage('uid', ret.data.id);
