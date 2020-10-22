@@ -33,8 +33,10 @@
     });
     core.authRoomSession(session, function (ret, err) {
       if (ret) {
+        console.log(JSON.stringify(ret))
+        console.log(JSON.stringify(err))
         // api.alert({
-        //   title: 'core.authRoomSession ret', 
+        //   title: 'core.authRoomSession ret',
         //   msg: JSON.stringify(ret)
         // });
         api.openFrame({
@@ -48,13 +50,13 @@
             h: 'auto'
           },
           bounces: false,
-          bgColor: 'rgba(0,0,0,0)',
+          bgColor: 'rgba(1,1,1,1)',
           vScrollBarEnabled: false,
           hScrollBarEnabled: false
         });
       } else {
         // api.alert({
-        //   title: 'core.authRoomSession err', 
+        //   title: 'core.authRoomSession err',
         //   msg: JSON.stringify(err)
         // });
         api.toast({

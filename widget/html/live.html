@@ -204,6 +204,7 @@
 				},
 
 				openVideoLiveRoom: function(item) {
+					console.log(item.id)
 					var _this = this;
 					api.showProgress({
 						title: '',
@@ -222,6 +223,8 @@
 							},
 						}
 					}, function (ret, err) {
+						console.log(JSON.stringify(ret))
+						console.log(JSON.stringify(err))
 						api.hideProgress();
 						if (ret) {
 							api.toast({
