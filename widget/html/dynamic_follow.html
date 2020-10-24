@@ -162,7 +162,7 @@
             }
           })
 				},
-				
+
 				getDynamicList: function (type) {
 					var _this = this;
 					api.showProgress({
@@ -286,7 +286,7 @@
 					if (item.gold != '0' && item.is_pay == 0 && item.member_id != _this.uid) {
 						api.confirm({
 							title: '提示',
-							msg: '查看此动态需要' + item.gold + '港币',
+							msg: '查看此动态需要' + item.gold + '蜜币',
 							buttons: ['确定', '取消']
 						}, function (ret, err) {
 							if (ret.buttonIndex == 1) {
@@ -317,7 +317,7 @@
 					if (item.gold != '0' && item.is_pay == 0 && item.member_id != _this.uid) {
 						api.confirm({
 							title: '提示',
-							msg: '查看此动态需要' + item.gold + '港币',
+							msg: '查看此动态需要' + item.gold + '蜜币',
 							buttons: ['确定', '取消']
 						}, function (ret, err) {
 							if (ret.buttonIndex == 1) {
@@ -385,7 +385,7 @@
 						} else {
 							api.confirm({
 								title: '提示',
-								msg: '查看此动态需要' + item.gold + '港币',
+								msg: '查看此动态需要' + item.gold + '蜜币',
 								buttons: ['确定', '取消']
 							}, function (ret, err) {
 								if (ret.buttonIndex == 1) {
@@ -584,7 +584,7 @@
 						dialogName: 'actionMenu'
 					});
 				},
-				
+
 				showRechargeDialog: function (title) {
           dialogBox.evaluation({
             styles: {

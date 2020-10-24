@@ -15,7 +15,7 @@
 		<div class="wrap flex-wrap flex-vertical">
 			<div id="main" class="home-main flex-con">
 				<div class="dynamic-list" v-if="follow">
-					<div class="dynamic-item" v-for="(item,index) in dynamiclist" :key="item.id" v-if="item.member!=null"> 
+					<div class="dynamic-item" v-for="(item,index) in dynamiclist" :key="item.id" v-if="item.member!=null">
 						<div class="user-wrap">
 							<div class="user-avatar" @click="openUserHome(item.member_id)">
 								<img :src="item.member.avatar + '?imageView2/1/w/100/h/100'" alt="">
@@ -286,7 +286,7 @@
 					if (item.gold != '0' && item.is_pay == 0 && item.member_id != _this.uid) {
 						api.confirm({
 							title: '提示',
-							msg: '查看此动态需要' + item.gold + '港币',
+							msg: '查看此动态需要' + item.gold + '蜜币',
 							buttons: ['确定', '取消']
 						}, function (ret, err) {
 							if (ret.buttonIndex == 1) {
@@ -317,7 +317,7 @@
 					if (item.gold != '0' && item.is_pay == 0 && item.member_id != _this.uid) {
 						api.confirm({
 							title: '提示',
-							msg: '查看此动态需要' + item.gold + '港币',
+							msg: '查看此动态需要' + item.gold + '蜜币',
 							buttons: ['确定', '取消']
 						}, function (ret, err) {
 							if (ret.buttonIndex == 1) {
@@ -385,7 +385,7 @@
 						} else {
 							api.confirm({
 								title: '提示',
-								msg: '查看此动态需要' + item.gold + '港币',
+								msg: '查看此动态需要' + item.gold + '蜜币',
 								buttons: ['确定', '取消']
 							}, function (ret, err) {
 								if (ret.buttonIndex == 1) {

@@ -235,7 +235,7 @@
               api.sendEvent({
                 name: 'callTime',
                 extra: {
-                  con: '您剩余港币视频通话已不足2分钟，请及时充值'
+                  con: '您剩余蜜币视频通话已不足2分钟，请及时充值'
                 }
               });
               _this.rechargeflag = false;
@@ -243,7 +243,7 @@
           }
           if (minute >= _this.time) {
             api.toast({
-              msg: '您的港币已用完，结束视频通话'
+              msg: '您的蜜币已用完，结束视频通话'
             });
             _this.hangUp();
           }

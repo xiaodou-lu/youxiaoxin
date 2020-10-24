@@ -25,15 +25,15 @@
         <div class="recharge-title-t">
           <!-- <img class="zuan-icon" src="../image/zuan1_icon.png" alt=""> -->
           <i class="icon icon-gold"></i>
-          <span>我的港币</span>
+          <span>我的蜜币</span>
         </div>
         <div class="recharge-title-b">{{info.gold}}</div>
       </div>
       <div class="recharge-con">
         <div class="flex-item rechargeList" v-for="(item, i) in list" :key="item.id">
           <div class="rechargeList-l">
-            <div class="rechargeList-title">{{item.gold}}港币</div>
-            <div class="rechargeList-info"><span v-if="item.give != '0'">+ {{item.give}}港币</span><span v-if="item.give_vip != '0'">+ {{item.give_vip}}天VIP</span></div>
+            <div class="rechargeList-title">{{item.gold}}蜜币</div>
+            <div class="rechargeList-info"><span v-if="item.give != '0'">+ {{item.give}}蜜币</span><span v-if="item.give_vip != '0'">+ {{item.give_vip}}天VIP</span></div>
           </div>
           <div class="rechargeList-r">
             <span :id="item.id" @click="pay(item)">￥{{item.price}}</span>
@@ -108,7 +108,7 @@
             }
           })
         },
-        
+
         pay: function (item) {
           var _this = this;
           _this.isPaying = true;
