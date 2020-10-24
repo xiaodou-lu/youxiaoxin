@@ -392,7 +392,8 @@
 								if (ret.status == 200) {
 									_this.mobile = '';
 									_this.password = '';
-									var token = JSON.parse(ret.data.token).code == 200 ? JSON.parse(ret.data.token).token : '';
+									// var token = JSON.parse(ret.data.token).code == 200 ? JSON.parse(ret.data.token).token : '';
+									$api.setStorage('token', ret.data.token);
 									$api.setStorage('uid', ret.data.id);
 									$api.setStorage('uname', ret.data.name);
 									$api.setStorage('uavatar', ret.data.avatar);
