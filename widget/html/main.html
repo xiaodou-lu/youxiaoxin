@@ -376,6 +376,8 @@
 					var _this = this;
 					rong = api.require('rongCloudIM');
 					rong.init(function (ret, err) {
+						console.log(JSON.stringify(ret));
+						console.log(JSON.stringify(err));
 						if (ret.status == 'success') {
 							rong.connect({
 								token: $api.getStorage('token')
