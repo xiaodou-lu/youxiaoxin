@@ -87,14 +87,11 @@
    <param name="apiSecret" value="8710385655fda9ccb161597dec97329a"/>
    <param name="universalLink" value="https://q2rk9r.openinstall.io/ulink/"/>
   </feature>
-   <feature name="aMap">
-      <param name="android_api_key" value="f1d6c181d2f5f35396bca037415d2668" />
-      <param name="ios_api_key" value="ca6d7c02e8aa4d4794a06d06a32e2368" />
-    </feature>
-    <feature name="aMapLBS">
-    <param name="android_api_key" value="f1d6c181d2f5f35396bca037415d2668" />
-    <param name="ios_api_key" value="9b8e0fa87980fa5239fba8849861f28f" />
-  </feature>
+
+<feature name="aMapLBS">
+    <param name="android_api_key" value="932ff62b5c2403f32d4f97170ad646fc" />
+    <param name="ios_api_key" value="3ed148e13e7d598b655bcfd04694a6ea" />
+</feature>
  <feature name="aliPayPlus">
    <param name="urlScheme" value="2021001198692223" />
    </feature>

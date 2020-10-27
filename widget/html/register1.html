@@ -307,7 +307,7 @@
             });
             return false;
           }
-          if(_this.avatar=='w.png'){
+          if(_this.avatar=='w.png'||(_this.avatar=='m.png'){
             api.toast({
               msg: '请上传头像',
               duration: 2000,
@@ -320,6 +320,8 @@
             text: '正在注册...'
           });
 
+          console.log($api.getStorage('lon'));
+          console.log($api.getStorage('lat'));
           api.ajax({
             url: baseUrl + 'oauth/reg',
             method: 'post',
