@@ -75,16 +75,19 @@
    <param name="urlScheme" value="tencent1107018828" />
    <param name="apiKey" value="1107018828" />
  </feature>
+
+
 <feature name="wxPayPlus">
-   <param name="urlScheme" value="wxc85abafc511cc956"/>
-   <param name="apiKey" value="wxc85abafc511cc956"/>
-   <param name="apiSecret" value="8710385655fda9ccb161597dec97329a"/>
+   <param name="urlScheme" value="wxcc6db0be1a24f7bd"/>
+   <param name="apiKey" value="wxcc6db0be1a24f7bd"/>
+   <param name="apiSecret" value="67235752a920775c36b1428fda499399"/>
    <param name="universalLink" value="https://q2rk9r.openinstall.io/ulink/"/>
  </feature>
+
  <feature name="wxPlus">
-   <param name="urlScheme" value="wxc85abafc511cc956"/>
-   <param name="apiKey" value="wxc85abafc511cc956"/>
-   <param name="apiSecret" value="8710385655fda9ccb161597dec97329a"/>
+   <param name="urlScheme" value="wxcc6db0be1a24f7bd"/>
+   <param name="apiKey" value="wxcc6db0be1a24f7bd"/>
+   <param name="apiSecret" value="67235752a920775c36b1428fda499399"/>
    <param name="universalLink" value="https://q2rk9r.openinstall.io/ulink/"/>
   </feature>
 
@@ -93,6 +96,6 @@
     <param name="ios_api_key" value="3ed148e13e7d598b655bcfd04694a6ea" />
 </feature>
  <feature name="aliPayPlus">
-   <param name="urlScheme" value="2021001198692223" />
+   <param name="urlScheme" value="2088931746515782" />
    </feature>
 </widget>

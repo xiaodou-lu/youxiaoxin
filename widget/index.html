@@ -63,11 +63,11 @@
 	var app;
 	apiready = function () {
 		// 设置禁止截屏
-		// if (api.systemType == 'android') {
-		// 	api.setScreenSecure({
-		// 		secure: true
-		// 	});
-		// }
+		if (api.systemType == 'android') {
+			api.setScreenSecure({
+				secure: true
+			});
+		}
 		api.setStatusBarStyle({
 			style: 'light'
 		});

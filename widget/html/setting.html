@@ -144,7 +144,7 @@
         //       }
         //     }
         //   });
-          
+
         // });
       },
       methods: {
@@ -157,7 +157,7 @@
             }
           });
         },
-        
+
         goback: function () {
           api.closeWin();
         },
@@ -204,7 +204,9 @@
               },
             }
           }, function (ret, err) {
-            if (ret && ret.status == 200) {
+            console.log(JSON.stringify(ret));
+            console.log(JSON.stringify(err));
+            if (ret && ret.status == 200||ret.status == 409) {
               $api.rmStorage('uid');
               $api.rmStorage('uname');
               $api.rmStorage('uavatar');

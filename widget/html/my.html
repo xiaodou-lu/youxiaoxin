@@ -154,6 +154,29 @@
               $api.setStorage('uavatar', ret.data.avatar);
               $api.setStorage('usignature', ret.data.signature);
             }
+            if (ret.status == 409) {
+              $api.rmStorage('uid');
+              $api.rmStorage('uname');
+              $api.rmStorage('uavatar');
+              $api.rmStorage('umobile');
+              $api.rmStorage('token');
+              $api.rmStorage('index');
+              var rong = api.require('rongCloudIM');
+              rong.disconnect({
+                isReceivePush: true
+              }, function (ret, err) {
+                if (ret.status == 'success') {
+                  api.toast({
+                    msg: '该设备已被下线！请重新登录'
+                  });
+                }
+                setTimeout(function () {
+                  api.closeToWin({
+                    name: 'root'
+                  });
+                }, 1000);
+              });
+            }
           })
         },
 

@@ -307,14 +307,14 @@
             });
             return false;
           }
-          if(_this.avatar=='w.png'||(_this.avatar=='m.png'){
-            api.toast({
-              msg: '请上传头像',
-              duration: 2000,
-              location: 'bottom'
-            });
-            return false;
-          }
+          // if(_this.avatar=='w.png'||_this.avatar=='m.png'){
+          //   api.toast({
+          //     msg: '请上传头像',
+          //     duration: 2000,
+          //     location: 'bottom'
+          //   });
+          //   return false;
+          // }
           api.showProgress({
             title: '',
             text: '正在注册...'
@@ -354,12 +354,12 @@
                 msg: ret.message[0]
                });
               if (ret.status == 200) {
-                var token = JSON.parse(ret.data.token).code == 200 ? JSON.parse(ret.data.token).token : '';
+                // var token = JSON.parse(ret.data.token).code == 200 ? JSON.parse(ret.data.token).token : '';
                 $api.setStorage('uid', ret.data.id);
                 $api.setStorage('uname', ret.data.name);
                 $api.setStorage('uavatar', ret.data.avatar);
                 $api.setStorage('umobile', ret.data.email);
-                $api.setStorage('token', token);
+                $api.setStorage('token', ret.data.tokenert/y
                 api.openWin({
                   name: 'main',
                   url: 'main.html',
