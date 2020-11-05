@@ -23,7 +23,7 @@
       </header>
       <div class="flex-con">
         <div class="account-info">
-          <div class="label">港币余额：</div>
+          <div class="label">蜜币余额：</div>
           <div class="balance">
             <i class="icon icon-gold"></i>
             <!-- <img class="zuan-icon" src="../image/zuan2_icon.png" alt=""> -->
@@ -118,7 +118,7 @@
             this.rmb = '';
           } else {
             if (isNaN(this.form.price)) {
-  
+
             } else {
               this.rmb = (parseInt(this.form.price)/parseInt(this.scale)).toFixed(2);
             }
@@ -168,7 +168,7 @@
           };
           if (this.form.price > this.jewel) {
             api.toast({
-              msg: '港币余额不足',
+              msg: '蜜币余额不足',
               duration: 2000,
               location: 'bottom'
             });
@@ -208,7 +208,7 @@
           };
           api.confirm({
             title: '确认',
-            msg: '您确定提现' + _this.form.price + '港币吗？',
+            msg: '您确定提现' + _this.form.price + '蜜币吗？',
             buttons: ['确定', '取消']
           }, function(ret, err) {
             if (ret.buttonIndex == 1) {

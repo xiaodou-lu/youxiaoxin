@@ -107,7 +107,7 @@
               </div>
               <div class="pay-wrap">
                 <div class="title">付费直播</div>
-                <div class="tips">主播开启了付费直播，<span>{{gold}}</span>港币/场，是否进入？</div>
+                <div class="tips">主播开启了付费直播，<span>{{gold}}</span>蜜币/场，是否进入？</div>
                 <div class="btn-wrap">
                   <button @click="cancel" class="btn-cancel">退出</button>
                   <button @click="pay" class="btn-enter">确定</button>
@@ -288,7 +288,7 @@
                 h: api.frameHeight
               }
             });
-            
+
             player.setDisplayMode({
               mode: 'aspectFill'
             });
@@ -367,7 +367,7 @@
                 x: 0,
                 y: 0,
                 w: api.winWidth,
-                h: api.winHeight  
+                h: api.winHeight
               },
               bg: '#000',
               path: api.pageParam.rtmp,
@@ -1015,7 +1015,7 @@
           var _this = this;
           api.prompt({
             title: '设置直播间收费',
-            msg: '设置0表示免费，设置10表示10港币/场',
+            msg: '设置0表示免费，设置10表示10蜜币/场',
             text: '',
             buttons: ['确定', '取消']
           }, function(ret, err) {

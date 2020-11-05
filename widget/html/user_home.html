@@ -49,7 +49,7 @@
               </div>
               <div class="info-item price">
                 <strong>{{to_member.price}}</strong>
-                <span>港币/分钟</span>
+                <span>蜜币/分钟</span>
               </div>
             </div>
           </div>
@@ -344,7 +344,7 @@
 						if (parseInt(_this.from_member.gold) >= parseInt(item.gold)) {
 							api.confirm({
 								title: '提示',
-								msg: '查看此动态需要' + item.gold + '港币',
+								msg: '查看此动态需要' + item.gold + '蜜币',
 								buttons: ['确定', '取消']
 							}, function (ret, err) {
 								if (ret.buttonIndex == 1) {
@@ -359,7 +359,7 @@
 								}
 							});
 						} else {
-							_this.showRechargeDialog('您的港币余额不足');
+							_this.showRechargeDialog('您的蜜币余额不足');
 						}
 					}
 				},
